@@ -155,7 +155,6 @@ func startAgent(confFilePath string, data map[string]string, password string, in
 	DATASTACKAgent.BaseURL = data["base-url"]
 	DATASTACKAgent.HeartBeatFrequency = data["heartbeat-frequency"]
 	DATASTACKAgent.LogLevel = data["log-level"]
-	DATASTACKAgent.AgentType = data["agent-type"]
 	DATASTACKAgent.SentinelPortNumber = data["sentinel-port-number"]
 	DATASTACKAgent.AgentPortNumber = data["agent-port-number"]
 	DATASTACKAgent.SentinelMaxMissesCount = data["sentinel-max-misses-count"]

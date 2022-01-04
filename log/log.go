@@ -35,19 +35,14 @@ func (Log *Logger) GetLogger(agentType string, level string, agentName string, a
 	switch mode {
 	case "INFO":
 		loggingLevel = levels.INFO
-		break
 	case "DEBUG":
 		loggingLevel = levels.DEBUG
-		break
 	case "TRACE":
 		loggingLevel = levels.TRACE
-		break
 	case "PROD":
 		loggingLevel = levels.INFO
-		break
 	default:
 		loggingLevel = levels.INFO
-		break
 	}
 	logger.SetLevel(loggingLevel)
 	if IsKubernetesEnv() {
@@ -102,9 +97,7 @@ func (Log *Logger) GetLogger(agentType string, level string, agentName string, a
 			}
 			return logger
 		}
-
 		logger.SetAppender(appenders.Multiple(layoutPattern, consoleAppender, rollingFileAppender, dateFileAppender))
-
 		return logger
 	}
 	logger.SetAppender(consoleAppender)
