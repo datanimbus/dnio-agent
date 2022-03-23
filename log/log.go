@@ -27,7 +27,7 @@ type LoggerService interface {
 type Logger struct{}
 
 //GetLogger - get logger
-func (Log *Logger) GetLogger(agentType string, level string, agentName string, agentID string, MaxBackupIndex string, MaxFileSize string, LogRotationType string, logHookURL string, client *http.Client, headers map[string]string) logger.Logger {
+func (Log *Logger) GetLogger(level string, agentName string, agentID string, MaxBackupIndex string, MaxFileSize string, LogRotationType string, logHookURL string, client *http.Client, headers map[string]string) logger.Logger {
 	logger := log.Logger("logger")
 	pattern := "[%d]" + " [%p]" + " [" + agentName + "]" + " [" + agentID + "]"
 	mode := strings.ToUpper(level)
@@ -76,28 +76,24 @@ func (Log *Logger) GetLogger(agentType string, level string, agentName string, a
 		dateFileAppender := appenders.RollingFile(filepath.Join(d, "..", "log", dateFileName), filepath.Join(d, "..", "log"), dateFileName, true, true, false, maxBackupIndex, "", nil)
 		dateFileAppender.MaxBackupIndex = maxBackupIndex
 		dateFileAppender.SetLayout(layoutPattern)
-		if strings.Contains(agentType, "AGENT") {
-			logShippingFileSize := 1024
-			namer := func() string {
-				return "temp.log"
-			}
-			logShippingFileAppender := appenders.RollingFile(filepath.Join(d, "..", "log", "temp.log"), filepath.Join(d, "..", "log"), "temp.log", true, false, true, 102400, filepath.Join(d, "..", "log", "temp"), namer)
-			logShippingFileAppender.MaxFileSize = int64(logShippingFileSize)
-			logShippingFileAppender.MaxBackupIndex = 102400
-			logShippingFileAppender.LogHookURL = logHookURL
-			logShippingFileAppender.Client = client
-			logShippingFileAppender.CustomHeaders = headers
-			logShippingFileAppender.SetLayout(layoutPattern)
-			if strings.ToUpper(LogRotationType) == "DAYS" {
-				logger.SetAppender(appenders.Multiple(layoutPattern, consoleAppender, rollingFileAppender, dateFileAppender, logShippingFileAppender))
-			} else {
-				dateFileAppender = nil
-				logger.SetAppender(appenders.Multiple(layoutPattern, consoleAppender, rollingFileAppender, logShippingFileAppender))
-				os.Remove(filepath.Join(d, "..", "log", dateFileName))
-			}
-			return logger
+		logShippingFileSize := 1024
+		namer := func() string {
+			return "temp.log"
 		}
-		logger.SetAppender(appenders.Multiple(layoutPattern, consoleAppender, rollingFileAppender, dateFileAppender))
+		logShippingFileAppender := appenders.RollingFile(filepath.Join(d, "..", "log", "temp.log"), filepath.Join(d, "..", "log"), "temp.log", true, false, true, 102400, filepath.Join(d, "..", "log", "temp"), namer)
+		logShippingFileAppender.MaxFileSize = int64(logShippingFileSize)
+		logShippingFileAppender.MaxBackupIndex = 102400
+		logShippingFileAppender.LogHookURL = logHookURL
+		logShippingFileAppender.Client = client
+		logShippingFileAppender.CustomHeaders = headers
+		logShippingFileAppender.SetLayout(layoutPattern)
+		if strings.ToUpper(LogRotationType) == "DAYS" {
+			logger.SetAppender(appenders.Multiple(layoutPattern, consoleAppender, rollingFileAppender, dateFileAppender, logShippingFileAppender))
+		} else {
+			dateFileAppender = nil
+			logger.SetAppender(appenders.Multiple(layoutPattern, consoleAppender, rollingFileAppender, logShippingFileAppender))
+			os.Remove(filepath.Join(d, "..", "log", dateFileName))
+		}
 		return logger
 	}
 	logger.SetAppender(consoleAppender)

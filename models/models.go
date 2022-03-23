@@ -1,6 +1,24 @@
 package models
 
-import "time"
+import (
+	"time"
+)
+
+//LoginAPIRequest - agent login api request structure
+type LoginAPIRequest struct {
+	AgentID      string `json:"agentId"`
+	Password     string `json:"password"`
+	AgentVersion string `json:"agentVersion"`
+}
+
+//LoginAPIResponse - agent login api response structure
+type LoginAPIResponse struct {
+	Message      string `json:"message"`
+	AgentData    string `json:"agentData" bson:"agentData"`
+	Token        string `json:"token"`
+	RefreshToken string `json:"rToken"`
+	ExpiresIn    string `json:"expiresIn"`
+}
 
 //CentralHeartBeatRequest - agent central heartbeat request structure
 type CentralHeartBeatRequest struct {
@@ -12,30 +30,7 @@ type CentralHeartBeatRequest struct {
 type CentralHeartBeatResponse struct {
 	TransferLedgerEntries     []TransferLedgerEntry `json:"transferLedgerEntries"`
 	Status                    string                `json:"status"`
-	Mode                      string                `json:"mode"`
 	AgentMaxConcurrentUploads string                `json:"agentMaxConcurrentUploads"`
-}
-
-//GetRunningOrPendingFlowsFromPMRequest - get running or pending flows from pm request
-type GetRunningOrPendingFlowsFromIMRequest struct {
-	VaultVersion int    `json:"vaultVersion"`
-	Release      string `json:"release"`
-}
-
-//DownloadFileRequest - request structure for download file
-type DownloadFileRequest struct {
-	AgentName      string `json:"agentName"`
-	AgentID        string `json:"agentID"`
-	AgentVersion   string `json:"agentVersion"`
-	FileName       string `json:"fileName"`
-	FlowName       string `json:"flowName"`
-	FlowID         string `json:"flowID"`
-	AppName        string `json:"appName"`
-	PartnerName    string `json:"partnerName"`
-	PartnerID      string `json:"partnerID"`
-	FileID         string `json:"fileID"`
-	DeploymentName string `json:"deploymentName"`
-	Encryption     string `json:"encryption"`
 }
 
 //TransferLedgerEntry - TransferLedgerEntry structure of DB
@@ -44,7 +39,6 @@ type TransferLedgerEntry struct {
 	AgentID        string    `json:"agentID" bson:"AgentID"`
 	AppName        string    `json:"appName" bson:"AppName"`
 	AgentName      string    `json:"agentName" bson:"AgentName"`
-	Namespace      string    `json:"namespace" bson:"Namespace"`
 	FlowName       string    `json:"flowName" bson:"FlowName"`
 	FlowID         string    `json:"flowID" bson:"FlowID"`
 	DeploymentName string    `json:"deploymentName" bson:"DeploymentName"`
@@ -61,7 +55,6 @@ type MonitoringLedgerEntry struct {
 	AgentID            string         `storm:"id" json:"agentID" bson:"AgentID"`
 	AppName            string         `json:"appName" bson:"AppName"`
 	AgentName          string         `json:"agentName" bson:"AgentName"`
-	ResponseAgentID    string         `json:"responseAgentID" bson:"ResponseAgentID"`
 	HeartBeatFrequency string         `json:"heartBeatFrequency" bson:"HeartBeatFrequency"`
 	MACAddress         string         `json:"macAddress" bson:"MACAddress"`
 	IPAddress          string         `json:"ipAddress" bson:"IPAddress"`
@@ -76,63 +69,6 @@ type MonitoringLedgerEntry struct {
 type PendingFiles struct {
 	FlowID string `json:"flowID" bson:"FlowID"`
 	Count  int    `json:"count" bson:"Count"`
-}
-
-//DownloadFileRequestMetaData - utility structure for any file download request
-type DownloadFileRequestMetaData struct {
-	FileName              string   `json:"fileName"`
-	RemoteTxnID           string   `json:"remoteTxnID"`
-	DataStackTxnID        string   `json:"dataStackTxnID"`
-	Checksum              string   `json:"checksum"`
-	FileLocation          []string `json:"outputDirectory"`
-	BlockName             string   `json:"blockName"`
-	SequenceNo            string   `json:"sequenceNo"`
-	StructureID           string   `json:"structureID"`
-	HeaderOutputDirectory string   `json:"headerOutputDirectory"`
-	MirrorDirectory       string   `json:"mirrorDirectory"`
-	FileID                string   `json:"fileID"`
-	Password              string   `json:"password"`
-	OperatingSystem       string   `json:"operatingSystem"`
-	SuccessBlock          string   `json:"successBlock"`
-	ChunkChecksumList     string   `json:"chunkChecksumList"`
-	TotalChunks           string   `json:"totalChunks"`
-	DownloadAgentID       string   `json:"downloadAgentID"`
-}
-
-//InteractionMetadata - metadata for interaction
-type InteractionMetadata struct {
-	FileSuffix        string   `json:"fileSuffix"`
-	InputDirectory    string   `json:"inputDirectory"`
-	OutputDirectory   []string `json:"outputDirectory"`
-	BlockName         string   `json:"blockName"`
-	StructureID       string   `json:"structureID"`
-	SequenceNo        int      `json:"sequenceNo"`
-	RemoteTxnID       string   `json:"remoteTxnID"`
-	DataStackTxnID    string   `json:"dataStackTxnID"`
-	OriginalFileName  string   `json:"originalFileName"`
-	Md5CheckSum       string   `json:"md5CheckSum"`
-	Size              string   `json:"size"`
-	MACAddress        string   `json:"macAddress"`
-	IPAddress         string   `json:"IPAddress"`
-	Encrypt           string   `json:"encrypt"`
-	SuccessFlow       bool     `json:"successFlow"`
-	BaseInteractionID string   `json:"baseInteractionID" bson:"baseInteractionID"`
-	ReattemptCount    int      `json:"reattemptCount" bson:"reattemptCount"`
-	AttemptNo         int      `json:"attemptNo" bson:"attemptNo"`
-	MirrorPath        string   `json:"mirrorPath" bson:"mirrorPath"`
-	OS                string   `json:"os" bson:"os"`
-}
-
-//EncryptionDecryptionTool - encryption decryption tool
-type EncryptionDecryptionTool struct {
-	Password       string `json:"password"`
-	InputFilePath  string `json:"inputFilePath"`
-	OutputFilePath string `json:"outputFilePath"`
-}
-
-//EncryptionDecryptionToolMessage - encryption decryption too message
-type EncryptionDecryptionToolMessage struct {
-	Message string `json:"message"`
 }
 
 //FlowDefinitionResponse - response structure for flow creation request
@@ -196,73 +132,14 @@ type TimeBoundStruct struct {
 	To   string `json:"to"`
 }
 
-//FlowWatcherProperties - watcher properties of that flow
-type FlowWatcherProperties struct {
-	AppName                string                         `json:"appName"`
-	AgentName              string                         `json:"agentName"`
-	FlowName               string                         `json:"flowName"`
-	FlowID                 string                         `json:"flowID"`
-	InputFolder            string                         `json:"inputFolder"`
-	DeploymentName         string                         `json:"deploymentName"`
-	Namespace              string                         `json:"namespace"`
-	BlockName              string                         `json:"blockName"`
-	StructureID            string                         `json:"structureID"`
-	UniqueRemoteTxn        bool                           `json:"uniqueRemoteTxn"`
-	UniqueRemoteTxnOptions UniqueRemoteTransactionOptions `json:"uniqueRemoteTxnOptions"`
-	FileExtensions         []FileExtensionStruct          `json:"fileExtensions"`
-	FileNameRegexes        []string                       `json:"fileRegex"`
-	MirrorEnabled          bool                           `json:"mirrorEnabled"`
-	OutputDirectories      []OutputDirectoryInfo          `json:"outputDirectories"`
-	TargetAgentID          string                         `json:"targetAgentID"`
-	WatcherType            string                         `json:"watcherType"`
-	Timer                  TimeBoundProperties            `json:"timer"`
-	Listener               bool                           `json:"listener"`
-	ErrorBlocks            bool                           `json:"errorBlocks"`
+//EncryptionDecryptionTool - encryption decryption tool
+type EncryptionDecryptionTool struct {
+	Password       string `json:"password"`
+	InputFilePath  string `json:"inputFilePath"`
+	OutputFilePath string `json:"outputFilePath"`
 }
 
-//MirrorDirectoryMetaData - mirror directory metadata
-type MirrorDirectoryMetaData struct {
-	OperatingSystem string                `json:"operatingSystem"`
-	MirrorPaths     []string              `json:"mirrorPaths"`
-	OutputDirectory []OutputDirectoryInfo `json:"outputDirectories"`
-	TargetAgentID   string                `json:"targetAgentID"`
-}
-
-//ErrorFlowRequestData - request data for error flow
-type ErrorFlowRequestData struct {
-	AppName    string `json:"appName"`
-	AgentName  string `json:"agentName"`
-	FlowID     string `json:"flowId"`
-	FlowName   string `json:"flowName"`
-	NodeType   string `json:"nodeType"`
-	NodeID     string `json:"nodeId"`
-	Message    string `json:"message"`
-	StackTrace string `json:"stackTrace"`
-	StatusCode string `json:"statusCode"`
-}
-
-//FileUploadMetaData - utility structure for file upload metadata
-type FileUploadMetaData struct {
-	FlowName                string                `json:"flowName"`
-	FlowID                  string                `json:"flowID"`
-	AgentName               string                `json:"agentName"`
-	AppName                 string                `json:"appName"`
-	OriginalFileName        string                `json:"originalFileName"`
-	OriginalFilePath        string                `json:"originalFilePath"`
-	NewFileName             string                `json:"newFileName"`
-	NewLocation             string                `json:"newLocation"`
-	Md5CheckSum             string                `json:"md5CheckSum"`
-	RemoteTxnID             string                `json:"remoteTxnID"`
-	DataStackTxnID          string                `json:"dataStackTxnID"`
-	InputDirectory          string                `json:"inputDirectory"`
-	BlockName               string                `json:"blockName"`
-	StructureID             string                `json:"structureID"`
-	ErrorMessage            string                `json:"errorMessage"`
-	UniqueRemoteTransaction string                `json:"uniqueRemoteTransaction"`
-	UniqueFileName          string                `json:"uniqueFileName"`
-	UniqueChecksum          string                `json:"uniqueChecksum"`
-	DownloadAgentID         string                `json:"downloadAgentID"`
-	MirrorPath              string                `json:"mirrorPath"`
-	Token                   string                `json:"DATASTACKFileToken"`
-	FlowWatcherProperties   FlowWatcherProperties `json:"flowWatcherProperties"`
+//EncryptionDecryptionToolMessage - encryption decryption too message
+type EncryptionDecryptionToolMessage struct {
+	Message string `json:"message"`
 }

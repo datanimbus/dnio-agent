@@ -12,44 +12,11 @@ import (
 )
 
 const (
-	//AGENTRESTARTERROR - error occured on agent restart
-	AGENTRESTARTERROR = "AGENT_RESTART_ERROR"
-
-	//UPLOADREQUEST - status while file is added to .input folder
-	UPLOADREQUEST = "UPLOADREQUEST"
-
-	//FILEPROCESSEDSUCCESS - Action when file processed successfully from DATASTACK
-	FILEPROCESSEDSUCCESS = "FILE_PROCESSED_SUCCESS"
+	//AGENTSTARTERROR - error occured on agent start
+	AGENTSTARTERROR = "AGENT_START_ERROR"
 
 	//HEARTBEATERROR - error occurred in either process
 	HEARTBEATERROR = "HEARTBEAT_ERROR"
-
-	//DOWNLOADREQUEST - status when file download request is received from edge/datastack-endpoint
-	DOWNLOADREQUEST = "DOWNLOAD_REQUEST"
-
-	//REDOWNLOADFILEREQUEST - request for redownloading the file
-	REDOWNLOADFILEREQUEST = "REDOWNLOAD_FILE_REQUEST"
-
-	//QUEUEDJOBSERROR - error occurred in handling of queued jobs handling
-	QUEUEDJOBSERROR = "QUEUED_JOBS_ERROR"
-
-	//DOWNLOADERROR - error occurred in either process
-	DOWNLOADERROR = "DOWNLOAD_ERROR"
-
-	//OUTPUTDIRECTORYDOESNOTEXISTERROR - output directory doesn't exist error
-	OUTPUTDIRECTORYDOESNOTEXISTERROR = "OUTPUT_DIRECTORY_DOES_NOT_EXIST_ERROR"
-
-	//DOWNLOADED - status when file has been successfully downloaded
-	DOWNLOADED = "DOWNLOADED"
-
-	//REDOWNLOADED - status when file get redownloaded
-	REDOWNLOADED = "REDOWNLOADED"
-
-	//UPLOADFILETOSUCCESSFLOWERROR = "upload file to success flow error"
-	UPLOADFILETOSUCCESSFLOWERROR = "UPLOAD_FILE_TO_SUCCESS_FLOW_ERROR"
-
-	//UPLOADFILETOSUCCESSFLOW = "upload file to success flow"
-	UPLOADFILETOSUCCESSFLOW = "UPLOAD_FILE_TO_SUCCESS_FLOW"
 
 	//FLOWCREATEREQUEST - Action to create new flow request
 	FLOWCREATEREQUEST = "FLOW_CREATE_REQUEST"
@@ -75,12 +42,6 @@ const (
 	//FLOWCREATED - status when flow is created successfully
 	FLOWCREATED = "FLOW_CREATED"
 
-	//GETMIRRORFOLDERSTRUCTURE = "get mirror structure from the input"
-	GETMIRRORFOLDERSTRUCTURE = "GET_MIRROR_FOLDER_STRUCTURE"
-
-	//GETMIRRORFOLDERSTRUCTUREERROR = "get mirror structure from the input error"
-	GETMIRRORFOLDERSTRUCTUREERROR = "GET_MIRROR_FOLDER_STRUCTURE_ERROR"
-
 	//FLOWSTARTED - Flow watcher successfully started to upload files
 	FLOWSTARTED = "FLOW_STARTED"
 
@@ -92,24 +53,6 @@ const (
 
 	//FLOWSTOPPED - Flow watcher stopped
 	FLOWSTOPPED = "FLOW_STOPPED"
-
-	//RECEIVEMIRRORFOLDERSTRUCTURE = "receive mirror folder structure for mirroring at output"
-	RECEIVEMIRRORFOLDERSTRUCTURE = "RECEIVE_MIRROR_FOLDER_STRUCTURE"
-
-	//RECEIVEMIRRORFOLDERSTRUCTUREERROR = "receive mirror folder structure for mirroring at output error"
-	RECEIVEMIRRORFOLDERSTRUCTUREERROR = "RECEIVE_MIRROR_FOLDER_STRUCTURE_ERROR"
-
-	//PREPROCESSINGFILEERROR - pre processing file error
-	PREPROCESSINGFILEERROR = "PRE_PROCESSING_FILE_ERROR"
-
-	//ERRORFLOWAPIREQUEST - "agent side file error to error flow"
-	ERRORFLOWAPIREQUEST = "ERROR_FLOW_API_REQUEST"
-
-	//ERRORFLOWAPIREQUESTERROR - "error during error flow api request"
-	ERRORFLOWAPIREQUESTERROR = "ERROR_FLOW_API_REQUEST_ERROR"
-
-	//FILEUPLOADERRORDUETOLARGEFILENAMEORMAXFILESIZE - file upload error due to large file name or max file size
-	FILEUPLOADERRORDUETOLARGEFILENAMEORMAXFILESIZE = "FILE_UPLOAD_ERROR_DUE_TO_LARGE_FILE_NAME_MAX_FILE_SIZE"
 
 	//WATCHERERROR - error occurred in running watcher for flow
 	WATCHERERROR = "WATCHER_ERROR"
@@ -125,12 +68,8 @@ type TransferLedger struct {
 
 type TransferLedgerService interface {
 	AddEntry(*models.TransferLedgerEntry) error
-	CompactDB() error
-	DeletePendingUploadRequestFromDB() (bool, error)
 	GetUnsentNotifications() ([]models.TransferLedgerEntry, error)
 	UpdateSentOrReadFieldOfEntry(entry *models.TransferLedgerEntry, val bool) error
-	GetFileDownloadRequests(readCountLimit int) ([]models.TransferLedgerEntry, error)
-	IsFileAlreadyDownloaded(fileID string) bool
 }
 
 //InitTransferLedger - initialize DB
@@ -145,15 +84,11 @@ func InitTransferLedger(filePath string, store string) (*TransferLedger, error) 
 	transferLedger.TransferLedgerFilePath = filePath
 	transferLedger.TransferLedgerDBSize = int64(32768)
 	transferLedger.DB.Init(&models.TransferLedgerEntry{})
-	transferLedger.CompactDB()
 	return &transferLedger, nil
 }
 
 //AddEntry - add new entry to transfer ledger
 func (db *TransferLedger) AddEntry(entry *models.TransferLedgerEntry) error {
-	if entry.Action == FILEPROCESSEDSUCCESS {
-		fmt.Println("Adding Transfer Entry for FILEPROCESSEDSUCCESS")
-	}
 	if entry.ID == "" {
 		u := uuid.NewV4()
 		entry.ID = u.String()
@@ -182,45 +117,6 @@ func (db *TransferLedger) handleLogsPurgeRequest() error {
 		return err
 	}
 	return nil
-}
-
-func (db *TransferLedger) CompactDB() error {
-	var entries []models.TransferLedgerEntry
-	err := db.DB.Find("SentOrRead", false, &entries)
-	if err != nil && !strings.Contains(err.Error(), "not found") {
-		return err
-	}
-	db.DB.Close()
-	newFilePath := strings.Replace(db.TransferLedgerFilePath, "transfer-ledger.db", "new-transfer-ledger.db", -1)
-	dummyDB, err := storm.Open(newFilePath)
-	dummyDB.Init(&models.TransferLedgerEntry{})
-	if err != nil {
-		return err
-	}
-	for _, entry := range entries {
-		dummyDB.Save(&entry)
-	}
-	dummyDB.Close()
-	err = os.Rename(newFilePath, db.TransferLedgerFilePath)
-	if err != nil {
-		return err
-	}
-	db.DB, _ = storm.Open(db.TransferLedgerFilePath)
-	return nil
-}
-
-//DeletePendingUploadRequestFromDB - deleting pending upload request from db on agent start
-func (db *TransferLedger) DeletePendingUploadRequestFromDB() (bool, error) {
-	query := db.DB.Select(q.Eq("SentOrRead", false), q.Eq("Action", UPLOADREQUEST))
-	err := query.Delete(new(models.TransferLedgerEntry))
-	if err != nil {
-		if fmt.Sprintf("%s", err) == "not found" {
-			return true, nil
-		} else {
-			return false, err
-		}
-	}
-	return true, nil
 }
 
 //GetUnsentNotifications - get list of notifications to be sent
@@ -252,39 +148,4 @@ func (db *TransferLedger) UpdateSentOrReadFieldOfEntry(entry *models.TransferLed
 		return err
 	}
 	return nil
-}
-
-//GetFileDownloadRequests - get file download requests
-func (db *TransferLedger) GetFileDownloadRequests(readCountLimit int) ([]models.TransferLedgerEntry, error) {
-	transferLedgerEntries := []models.TransferLedgerEntry{}
-	actions := []string{}
-	actions = append(actions, DOWNLOADREQUEST)
-	actions = append(actions, REDOWNLOADFILEREQUEST)
-	query := db.DB.Select(q.Eq("EntryType", "IN"), q.Eq("SentOrRead", false), q.In("Action", actions)).Limit(readCountLimit)
-	err := query.Find(&transferLedgerEntries)
-	if fmt.Sprintf("%s", err) == "not found" {
-		return transferLedgerEntries, nil
-	}
-	if err != nil {
-		return nil, err
-	}
-	return transferLedgerEntries, nil
-}
-
-//IsFileAlreadyDownloaded - update an existing entry to transfer ledger
-func (db *TransferLedger) IsFileAlreadyDownloaded(fileID string) bool {
-	transferLedgerEntries := []models.TransferLedgerEntry{}
-	query := db.DB.Select(q.Eq("Action", "DOWNLOADED"+fileID), q.Eq("SentOrRead", true))
-	query.Limit(2)
-	err := query.Find(&transferLedgerEntries)
-	if fmt.Sprintf("%s", err) == "not found" {
-		return false
-	}
-	if err != nil {
-		return false
-	}
-	if len(transferLedgerEntries) > 0 {
-		return true
-	}
-	return false
 }
