@@ -195,7 +195,7 @@ func verifyAgentPassword(password string) string {
 		Logger.Error(err)
 	}
 
-	URL := "https://{BaseURL}/bm/auth/agent/login"
+	URL := "https://{BaseURL}/api/a/bm/auth/login"
 	URL = strings.Replace(URL, "{BaseURL}", confData["base-url"], -1)
 	Logger.Info("Connecting to integration manager - " + URL)
 	client := Utils.GetNewHTTPClient(nil)
@@ -205,6 +205,7 @@ func verifyAgentPassword(password string) string {
 		Logger.Error("Error from Integration Manager - " + err.Error())
 		os.Exit(0)
 	}
+	req.Header.Set("Content-Type", "application/json")
 	req.Close = true
 	res, err := client.Do(req)
 	if err != nil {
@@ -240,13 +241,15 @@ func verifyAgentPassword(password string) string {
 			Logger.Error("Error unmarshalling response from IM - " + err.Error())
 			os.Exit(0)
 		}
-		err = json.Unmarshal([]byte(BMResponse.AgentData), &DATASTACKAgent)
+		agentData := models.AgentData{}
+		err = json.Unmarshal([]byte(BMResponse.AgentData), &agentData)
 		if err != nil {
 			data = nil
 			bytesData = nil
 			Logger.Error("Error unmarshalling agent data from IM - " + err.Error())
 			os.Exit(0)
 		}
+
 		Logger.Info("Agent Successfuly Logged In - ", DATASTACKAgent.AgentName)
 		Logger.Info("Agent Data - " + BMResponse.AgentData)
 	}

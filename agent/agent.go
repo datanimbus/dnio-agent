@@ -56,9 +56,9 @@ type AgentDetails struct {
 	LogLevel               string
 	SentinelPortNumber     string
 	SentinelMaxMissesCount string
-	EncryptFile            string
-	RetainFileOnSuccess    string
-	RetainFileOnError      string
+	EncryptFile            bool
+	RetainFileOnSuccess    bool
+	RetainFileOnError      bool
 	AgentPortNumber        string
 	Release                string
 	MaxLogBackUpIndex      string

@@ -20,6 +20,21 @@ type LoginAPIResponse struct {
 	ExpiresIn    string `json:"expiresIn"`
 }
 
+//AgentDataFromIM - agent information from IM
+type AgentData struct {
+	ID                  string `json:"_id"`
+	Active              bool   `json:"active"`
+	AppName             string `json:"app"`
+	AgentName           string `json:"name"`
+	AgentVersion        int64  `json:"__v"`
+	EncryptFile         bool   `json:"encryptFile"`
+	RetainFileOnSuccess bool   `json:"retainFileOnSuccess"`
+	RetainFileOnError   bool   `json:"retainFileOnError"`
+	Internal            bool   `json:"internal"`
+	Token               string `json:"token"`
+	Secret              string `json:"secret"`
+}
+
 //CentralHeartBeatRequest - agent central heartbeat request structure
 type CentralHeartBeatRequest struct {
 	MonitoringLedgerEntries []MonitoringLedgerEntry `json:"monitoringLedgerEntries"`
