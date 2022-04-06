@@ -13,11 +13,7 @@ type LoginAPIRequest struct {
 
 //LoginAPIResponse - agent login api response structure
 type LoginAPIResponse struct {
-	Message      string `json:"message"`
-	AgentData    string `json:"agentData" bson:"agentData"`
-	Token        string `json:"token"`
-	RefreshToken string `json:"rToken"`
-	ExpiresIn    string `json:"expiresIn"`
+	Message string `json:"message"`
 }
 
 //AgentDataFromIM - agent information from IM

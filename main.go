@@ -31,8 +31,8 @@ var inputPath = flag.String("in", "", "input file path")
 var outputPath = flag.String("out", "", "output file path")
 var Utils = utils.UtilsService{}
 var BMResponse = models.LoginAPIResponse{}
-var DATASTACKAgent = agent.AgentDetails{}
 var isInternalAgent string
+var AgentDataFromIM = models.AgentData{}
 
 type program struct {
 	exit chan struct{}
@@ -70,7 +70,7 @@ func main() {
 	headers["DATA-STACK-Agent-Id"] = confData["agent-id"]
 	headers["DATA-STACK-Agent-Name"] = confData["agent-name"]
 	LoggerService := log.Logger{}
-	Logger = LoggerService.GetLogger(confData["log-level"], confData["agent-name"], confData["agent-id"], "", "", "", logsHookURL, logClient, headers)
+	Logger = LoggerService.GetLogger(confData["log-level"], confData["agent-name"], confData["agent-id"], "", "", "days", logsHookURL, logClient, headers)
 
 	isInternalAgent = "false"
 	flag.Parse()
@@ -217,7 +217,13 @@ func verifyAgentPassword(password string) string {
 		data = nil
 		if res.Body != nil {
 			responseData, _ := ioutil.ReadAll(res.Body)
-			Logger.Error("Error from Integration Manager - " + string(responseData))
+			err = json.Unmarshal(responseData, &BMResponse)
+			if err != nil {
+				responseData = nil
+				Logger.Error("Error unmarshalling response from IM - " + err.Error())
+				os.Exit(0)
+			}
+			Logger.Error("Error from Integration Manager - " + BMResponse.Message)
 			os.Exit(0)
 		} else {
 			Logger.Error("Error from Integration Manager - " + http.StatusText(res.StatusCode))
@@ -234,30 +240,21 @@ func verifyAgentPassword(password string) string {
 		if res.Body != nil {
 			res.Body.Close()
 		}
-		err = json.Unmarshal(bytesData, &BMResponse)
-		if err != nil {
-			data = nil
-			bytesData = nil
-			Logger.Error("Error unmarshalling response from IM - " + err.Error())
-			os.Exit(0)
-		}
-		agentData := models.AgentData{}
-		err = json.Unmarshal([]byte(BMResponse.AgentData), &agentData)
+		err = json.Unmarshal([]byte(bytesData), &AgentDataFromIM)
 		if err != nil {
 			data = nil
 			bytesData = nil
 			Logger.Error("Error unmarshalling agent data from IM - " + err.Error())
 			os.Exit(0)
 		}
-
-		Logger.Info("Agent Successfuly Logged In - ", DATASTACKAgent.AgentName)
-		Logger.Info("Agent Data - " + BMResponse.AgentData)
+		Logger.Info("Agent Successfuly Logged In ")
 	}
 	return string(pass)
 }
 
 func startAgent(confFilePath string, data map[string]string, password string, interactive bool) {
 	//Setting up the agent
+	DATASTACKAgent := agent.AgentDetails{}
 	DATASTACKAgent.AgentID = data["agent-id"]
 	DATASTACKAgent.AgentName = data["agent-name"]
 	DATASTACKAgent.AgentPortNumber = data["agent-port-number"]
@@ -265,6 +262,12 @@ func startAgent(confFilePath string, data map[string]string, password string, in
 	DATASTACKAgent.HeartBeatFrequency = data["heartbeat-frequency"]
 	DATASTACKAgent.LogLevel = data["log-level"]
 	DATASTACKAgent.SentinelPortNumber = data["sentinel-port-number"]
-	agent.SetUpAgent(data["central-folder"], &DATASTACKAgent, password, interactive)
+	DATASTACKAgent.EncryptFile = AgentDataFromIM.EncryptFile
+	DATASTACKAgent.RetainFileOnSuccess = AgentDataFromIM.RetainFileOnSuccess
+	DATASTACKAgent.RetainFileOnError = AgentDataFromIM.RetainFileOnError
+	DATASTACKAgent.Token = AgentDataFromIM.Token
+	DATASTACKAgent.AgentVersion = AgentDataFromIM.AgentVersion
+	DATASTACKAgent.AppName = AgentDataFromIM.AppName
+	agent.SetUpAgent(data["central-folder"], &DATASTACKAgent, password, interactive, Logger)
 	DATASTACKAgent.StartAgent()
 }

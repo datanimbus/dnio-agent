@@ -2,7 +2,6 @@ package agent
 
 import (
 	"ds-agent/ledgers"
-	"ds-agent/log"
 	"ds-agent/messagegenerator"
 	"ds-agent/metadatagenerator"
 	"ds-agent/models"
@@ -46,7 +45,7 @@ type AgentDetails struct {
 	AgentID                string
 	AgentName              string
 	Password               string
-	AgentVersion           string
+	AgentVersion           int64
 	AppName                string
 	UploadRetryCounter     string
 	DownloadRetryCounter   string
@@ -85,6 +84,7 @@ type AgentDetails struct {
 	IPAddress              string
 	FilesUploading         int64
 	FilesDownloading       int64
+	Token                  string
 }
 
 //AgentService - task of agent
@@ -99,7 +99,7 @@ type AgentService interface {
 }
 
 //SetUpAgent -  setting up the datastack-agent
-func SetUpAgent(centralFolder string, DATASTACKAgent *AgentDetails, pass string, interactive bool) error {
+func SetUpAgent(centralFolder string, DATASTACKAgent *AgentDetails, pass string, interactive bool, logger logger.Logger) error {
 	var err error
 	DATASTACKAgent.FilesUploading = 0
 	DATASTACKAgent.FilesDownloading = 0
@@ -114,8 +114,6 @@ func SetUpAgent(centralFolder string, DATASTACKAgent *AgentDetails, pass string,
 		DATASTACKAgent.BaseURL = "https://" + DATASTACKAgent.BaseURL
 	}
 
-	logClient := DATASTACKAgent.FetchHTTPClient()
-	logsHookURL := DATASTACKAgent.BaseURL + "/logs"
 	headers := map[string]string{}
 	headers["DATA-STACK-App-Name"] = DATASTACKAgent.AppName
 	headers["DATA-STACK-Agent-Id"] = DATASTACKAgent.AgentID
@@ -123,9 +121,7 @@ func SetUpAgent(centralFolder string, DATASTACKAgent *AgentDetails, pass string,
 	headers["DATA-STACK-Mac-Address"] = DATASTACKAgent.MACAddress
 	headers["DATA-STACK-Ip-Address"] = DATASTACKAgent.IPAddress
 	headers["DATA-STACK-Agent-Type"] = DATASTACKAgent.AgentType
-	LoggerService := log.Logger{}
-	DATASTACKAgent.Logger = LoggerService.GetLogger(DATASTACKAgent.LogLevel, DATASTACKAgent.AgentName, DATASTACKAgent.AgentID, DATASTACKAgent.MaxLogBackUpIndex, DATASTACKAgent.LogMaxFileSize, DATASTACKAgent.LogRotationType, logsHookURL, logClient, headers)
-
+	DATASTACKAgent.Logger = logger
 	DATASTACKAgent.IPAddress = DATASTACKAgent.Utils.GetLocalIP()
 	list, err := DATASTACKAgent.Utils.GetMacAddr()
 	if err != nil {
@@ -158,22 +154,22 @@ func SetUpAgent(centralFolder string, DATASTACKAgent *AgentDetails, pass string,
 func (DATASTACKAgent *AgentDetails) StartAgent() error {
 	var wg sync.WaitGroup
 	DATASTACKAgent.Logger.Info("Agent Starting....")
-	DATASTACKAgent.Logger.Info("Agent ID- %s", DATASTACKAgent.AgentID)
-	DATASTACKAgent.Logger.Info("Agent Name- %s", DATASTACKAgent.AgentName)
-	DATASTACKAgent.Logger.Info("Agent Version- %s", DATASTACKAgent.AgentVersion)
-	DATASTACKAgent.Logger.Info("App Name- %s", DATASTACKAgent.AppName)
-	DATASTACKAgent.Logger.Debug("Upload Retry Counter- %s", DATASTACKAgent.UploadRetryCounter)
-	DATASTACKAgent.Logger.Debug("Download Retry Counter- %s", DATASTACKAgent.DownloadRetryCounter)
-	DATASTACKAgent.Logger.Debug("Log Level- %s", DATASTACKAgent.LogLevel)
-	DATASTACKAgent.Logger.Debug("Encrypt File- %s", DATASTACKAgent.EncryptFile)
-	DATASTACKAgent.Logger.Debug("Retain File On Success- %s", DATASTACKAgent.RetainFileOnSuccess)
-	DATASTACKAgent.Logger.Debug("Retain File On Error- %s", DATASTACKAgent.RetainFileOnError)
-	DATASTACKAgent.Logger.Debug("Max Concurrent Uploads- %v", DATASTACKAgent.MaxConcurrentUploads)
-	DATASTACKAgent.Logger.Debug("Max Concurrent Downloads- %v", DATASTACKAgent.MaxConcurrentDownloads)
-	DATASTACKAgent.Logger.Debug("Absolute File Path- %s", DATASTACKAgent.AbsolutePath)
-	DATASTACKAgent.Logger.Debug("Conf File Path- %s", DATASTACKAgent.ConfFilePath)
-	DATASTACKAgent.Logger.Info("Encryption Type- Buffered Encryption")
-	DATASTACKAgent.Logger.Info("Interactive mode-  %v", DATASTACKAgent.InteractiveMode)
+	DATASTACKAgent.Logger.Info("Agent ID : %s", DATASTACKAgent.AgentID)
+	DATASTACKAgent.Logger.Info("Agent Name : %s", DATASTACKAgent.AgentName)
+	DATASTACKAgent.Logger.Info("Agent Version : %v", DATASTACKAgent.AgentVersion)
+	DATASTACKAgent.Logger.Info("App Name : %s", DATASTACKAgent.AppName)
+	DATASTACKAgent.Logger.Debug("Upload Retry Counter : %s", DATASTACKAgent.UploadRetryCounter)
+	DATASTACKAgent.Logger.Debug("Download Retry Counter : %s", DATASTACKAgent.DownloadRetryCounter)
+	DATASTACKAgent.Logger.Debug("Log Level : %s", DATASTACKAgent.LogLevel)
+	DATASTACKAgent.Logger.Debug("Encrypt File : %t", DATASTACKAgent.EncryptFile)
+	DATASTACKAgent.Logger.Debug("Retain File On Success : %t", DATASTACKAgent.RetainFileOnSuccess)
+	DATASTACKAgent.Logger.Debug("Retain File On Error : %t", DATASTACKAgent.RetainFileOnError)
+	DATASTACKAgent.Logger.Debug("Max Concurrent Uploads : %v", DATASTACKAgent.MaxConcurrentUploads)
+	DATASTACKAgent.Logger.Debug("Max Concurrent Downloads : %v", DATASTACKAgent.MaxConcurrentDownloads)
+	DATASTACKAgent.Logger.Debug("Absolute File Path : %s", DATASTACKAgent.AbsolutePath)
+	DATASTACKAgent.Logger.Debug("Conf File Path : %s", DATASTACKAgent.ConfFilePath)
+	DATASTACKAgent.Logger.Info("Encryption Type : Buffered Encryption")
+	DATASTACKAgent.Logger.Info("Interactive mode : %v", DATASTACKAgent.InteractiveMode)
 
 	err := DATASTACKAgent.MonitoringLedger.AddOrUpdateEntry(&models.MonitoringLedgerEntry{
 		AgentID:            DATASTACKAgent.AgentID,
@@ -207,10 +203,11 @@ func (DATASTACKAgent *AgentDetails) getRunningOrPendingFlowsFromB2BManager() {
 
 	data := models.CentralHeartBeatResponse{}
 	headers := make(map[string]string)
-	headers["AgentID"] = DATASTACKAgent.AgentID
-	URL := "https://{BaseURL}/bm/{app}/agent/init"
-	URL = strings.Replace(URL, "{BaseURL}", DATASTACKAgent.BaseURL, -1)
+	headers["Authorization"] = "JWT " + DATASTACKAgent.Token
+	URL := DATASTACKAgent.BaseURL + "/api/a/bm/{app}/agent/utils/{agentId}/init"
 	URL = strings.Replace(URL, "{app}", DATASTACKAgent.AppName, -1)
+	URL = strings.Replace(URL, "{agentId}", DATASTACKAgent.AgentID, -1)
+	DATASTACKAgent.Logger.Info("Making Request at -: %s", URL)
 	err := DATASTACKAgent.Utils.MakeJSONRequest(client, URL, nil, headers, &data)
 	if err != nil {
 		DATASTACKAgent.addEntryToTransferLedger("", "", "", ledgers.AGENTSTARTERROR, metadatagenerator.GenerateErrorMessageMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err)), time.Now(), "OUT", false)
@@ -268,11 +265,14 @@ func (DATASTACKAgent *AgentDetails) initCentralHeartBeat(wg *sync.WaitGroup) {
 		request.MonitoringLedgerEntries[0].Release = DATASTACKAgent.Release
 		data := models.CentralHeartBeatResponse{}
 		headers := make(map[string]string)
-		headers["AgentID"] = DATASTACKAgent.AgentID
+		headers["Authorization"] = "JWT " + DATASTACKAgent.Token
 		headers["HeartBeatFrequency"] = DATASTACKAgent.HeartBeatFrequency
-		DATASTACKAgent.Logger.Trace("Heartbeat Headers %v", headers)
-		DATASTACKAgent.Logger.Info("Making Request at -: %s", DATASTACKAgent.BaseURL+"/heartbeat")
-		err = DATASTACKAgent.Utils.MakeJSONRequest(client, DATASTACKAgent.BaseURL+"/heartbeat", request, headers, &data)
+		DATASTACKAgent.Logger.Trace("Heartbeat Headers %s", headers["HeartBeatFrequency"])
+		URL := DATASTACKAgent.BaseURL + "/api/a/bm/{app}/agent/utils/{agentId}/heartbeat"
+		URL = strings.Replace(URL, "{app}", DATASTACKAgent.AppName, -1)
+		URL = strings.Replace(URL, "{agentId}", DATASTACKAgent.AgentID, -1)
+		DATASTACKAgent.Logger.Info("Making Request at -: %s", URL)
+		err = DATASTACKAgent.Utils.MakeJSONRequest(client, URL, request, headers, &data)
 		if err != nil {
 			DATASTACKAgent.addEntryToTransferLedger("", "", "", ledgers.HEARTBEATERROR, metadatagenerator.GenerateErrorMessageMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err)), time.Now(), "OUT", false)
 			DATASTACKAgent.Logger.Error("Heartbeat Error %s", messagegenerator.ExtractErrorMessageFromErrorObject(err))

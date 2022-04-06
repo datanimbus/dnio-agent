@@ -131,7 +131,9 @@ func (Utils *UtilsService) MakeJSONRequest(client *http.Client, url string, payl
 	for key, value := range headers {
 		req.Header.Set(key, value)
 	}
-	req.Header.Set("Content-Type", "application/json")
+	if payload != nil {
+		req.Header.Set("Content-Type", "application/json")
+	}
 	req.Close = true
 	res, errr := client.Do(req)
 	if errr != nil {
