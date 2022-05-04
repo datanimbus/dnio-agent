@@ -49,8 +49,9 @@ RUN apt-get install -y osslsigncode
 
 WORKDIR /app
 
-COPY --from=agents app/exec ./exec
-COPY --from=agents app/certs ./certs
+COPY --from=agents /app/exec ./exec
+COPY --from=agents /app/certs ./certs
+COPY --from=agents /app/scriptFiles ./scriptFiles
 
 RUN osslsigncode -h sha2 -certs certs/cd786349a667ff05-SHA2.pem -key certs/out.key -t http://timestamp.comodoca.com/authenticode -in exec/datastack-agent-windows-386-unsigned.exe -out exec/datastack-agent-windows-386.exe
 RUN osslsigncode -h sha2 -certs certs/cd786349a667ff05-SHA2.pem -key certs/out.key -t http://timestamp.comodoca.com/authenticode -in exec/datastack-agent-windows-amd64-unsigned.exe -out exec/datastack-agent-windows-amd64.exe

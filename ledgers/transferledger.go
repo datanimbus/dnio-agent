@@ -56,6 +56,63 @@ const (
 
 	//WATCHERERROR - error occurred in running watcher for flow
 	WATCHERERROR = "WATCHER_ERROR"
+
+	//GETMIRRORFOLDERSTRUCTURE = "get mirror structure from the input"
+	GETMIRRORFOLDERSTRUCTURE = "GET_MIRROR_FOLDER_STRUCTURE"
+
+	//GETMIRRORFOLDERSTRUCTUREERROR = "get mirror structure from the input error"
+	GETMIRRORFOLDERSTRUCTUREERROR = "GET_MIRROR_FOLDER_STRUCTURE_ERROR"
+
+	//RECEIVEMIRRORFOLDERSTRUCTURE = "receive mirror folder structure for mirroring at output"
+	RECEIVEMIRRORFOLDERSTRUCTURE = "RECEIVE_MIRROR_FOLDER_STRUCTURE"
+
+	//RECEIVEMIRRORFOLDERSTRUCTUREERROR = "receive mirror folder structure for mirroring at output error"
+	RECEIVEMIRRORFOLDERSTRUCTUREERROR = "RECEIVE_MIRROR_FOLDER_STRUCTURE_ERROR"
+
+	//FILEUPLOADERRORDUETOLARGEFILENAMEORMAXFILESIZE - file upload error due to large file name or max file size
+	FILEUPLOADERRORDUETOLARGEFILENAMEORMAXFILESIZE = "FILE_UPLOAD_ERROR_DUE_TO_LARGE_FILE_NAME_MAX_FILE_SIZE"
+
+	//FILEUPLOADERRORDUETOLARGEFILESIZE - file upload error due to large file size
+	FILEUPLOADERRORDUETOLARGEFILESIZE = "FILE_UPLOAD_ERROR_DUE_TO_LARGE_FILE_SIZE"
+
+	//ERRORFLOWAPIREQUEST - "agent side file error to error flow"
+	ERRORFLOWAPIREQUEST = "ERROR_FLOW_API_REQUEST"
+
+	//ERRORFLOWAPIREQUESTERROR - "error during error flow api request"
+	ERRORFLOWAPIREQUESTERROR = "ERROR_FLOW_API_REQUEST_ERROR"
+
+	//ERRORFLOWAPIREQUESTSUCCESSFULL - "agent side file error to error flow success"
+	ERRORFLOWAPIREQUESTSUCCESSFULL = "ERROR_FLOW_API_REQUEST_SUCCESSFULL"
+
+	//PREPROCESSINGFILEERROR - pre processing file error
+	PREPROCESSINGFILEERROR = "PRE_PROCESSING_FILE_ERROR"
+
+	//UPLOADREQUEST - status while file is added to .input folder
+	UPLOADREQUEST = "UPLOADREQUEST"
+
+	//REDOWNLOADFILEREQUEST - request for redownloading the file
+	REDOWNLOADFILEREQUEST = "REDOWNLOAD_FILE_REQUEST"
+
+	//QUEUEDJOBSERROR - error occurred in handling of queued jobs handling
+	QUEUEDJOBSERROR = "QUEUED_JOBS_ERROR"
+
+	//FLOWSTOPREQUEST - Action to stop existing flow
+	FLOWSTOPREQUEST = "FLOW_STOP_REQUEST"
+
+	//DOWNLOADREQUEST - status when file download request is received from edge/datastack-endpoint
+	DOWNLOADREQUEST = "DOWNLOAD_REQUEST"
+
+	//UPLOADERROR - error occurred in either process
+	UPLOADERROR = "UPLOAD_ERROR"
+
+	//UPLOADING - status while file is getting uploaded
+	UPLOADING = "UPLOADING"
+
+	//UPLOADED - status for successful file upload
+	UPLOADED = "UPLOADED"
+
+	//FILEUPLOADTOBMERROR - file upload to bm error
+	FILEUPLOADTOBMERROR = "FILE_UPLOAD_TO_BM_ERROR"
 )
 
 //TransferLedger - Base DB struct
@@ -70,6 +127,10 @@ type TransferLedgerService interface {
 	AddEntry(*models.TransferLedgerEntry) error
 	GetUnsentNotifications() ([]models.TransferLedgerEntry, error)
 	UpdateSentOrReadFieldOfEntry(entry *models.TransferLedgerEntry, val bool) error
+	DeletePendingUploadRequestFromDB() (bool, error)
+	CompactDB() error
+	GetQueuedOperations(readCountLimit int) ([]models.TransferLedgerEntry, error)
+	GetFileUploadRequests(readCountLimit int) ([]models.TransferLedgerEntry, error)
 }
 
 //InitTransferLedger - initialize DB
@@ -148,4 +209,74 @@ func (db *TransferLedger) UpdateSentOrReadFieldOfEntry(entry *models.TransferLed
 		return err
 	}
 	return nil
+}
+
+//DeletePendingUploadRequestFromDB - deleting pending upload request from db on agent start
+func (db *TransferLedger) DeletePendingUploadRequestFromDB() (bool, error) {
+	query := db.DB.Select(q.Eq("SentOrRead", false), q.Eq("Action", UPLOADREQUEST))
+	err := query.Delete(new(models.TransferLedgerEntry))
+
+	if err != nil {
+		if fmt.Sprintf("%s", err) == "not found" {
+			return true, nil
+		} else {
+			return false, err
+		}
+	}
+
+	return true, nil
+}
+
+//CompactDB - reduce DB size
+func (db *TransferLedger) CompactDB() error {
+	var entries []models.TransferLedgerEntry
+	err := db.DB.Find("SentOrRead", false, &entries)
+	if err != nil && !strings.Contains(err.Error(), "not found") {
+		return err
+	}
+	db.DB.Close()
+	newFilePath := strings.Replace(db.TransferLedgerFilePath, "transfer-ledger.db", "new-transfer-ledger.db", -1)
+	dummyDB, err := storm.Open(newFilePath)
+	dummyDB.Init(&models.TransferLedgerEntry{})
+	if err != nil {
+		return err
+	}
+	for _, entry := range entries {
+		dummyDB.Save(&entry)
+	}
+	dummyDB.Close()
+	err = os.Rename(newFilePath, db.TransferLedgerFilePath)
+	if err != nil {
+		return err
+	}
+	db.DB, _ = storm.Open(db.TransferLedgerFilePath)
+	return nil
+}
+
+//GetQueuedOperations - update an existing entry to transfer ledger
+func (db *TransferLedger) GetQueuedOperations(readCountLimit int) ([]models.TransferLedgerEntry, error) {
+	transferLedgerEntries := []models.TransferLedgerEntry{}
+	query := db.DB.Select(q.Eq("EntryType", "IN"), q.Eq("SentOrRead", false), q.Not(q.Eq("Action", REDOWNLOADFILEREQUEST)), q.Not(q.Eq("Action", DOWNLOADREQUEST)), q.Not(q.Eq("Action", UPLOADREQUEST)))
+	err := query.Find(&transferLedgerEntries)
+	if fmt.Sprintf("%s", err) == "not found" {
+		return transferLedgerEntries, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return transferLedgerEntries, nil
+}
+
+//GetFileUploadRequests - get file upload requests
+func (db *TransferLedger) GetFileUploadRequests(readCountLimit int) ([]models.TransferLedgerEntry, error) {
+	transferLedgerEntries := []models.TransferLedgerEntry{}
+	query := db.DB.Select(q.Eq("EntryType", "IN"), q.Eq("SentOrRead", false), q.Eq("Action", UPLOADREQUEST)).Limit(readCountLimit)
+	err := query.Find(&transferLedgerEntries)
+	if fmt.Sprintf("%s", err) == "not found" {
+		return transferLedgerEntries, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return transferLedgerEntries, nil
 }

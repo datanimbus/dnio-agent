@@ -195,7 +195,7 @@ func verifyAgentPassword(password string) string {
 		Logger.Error(err)
 	}
 
-	URL := "https://{BaseURL}/api/a/bm/auth/login"
+	URL := "https://{BaseURL}/bm/auth/login"
 	URL = strings.Replace(URL, "{BaseURL}", confData["base-url"], -1)
 	Logger.Info("Connecting to integration manager - " + URL)
 	client := Utils.GetNewHTTPClient(nil)
@@ -268,6 +268,7 @@ func startAgent(confFilePath string, data map[string]string, password string, in
 	DATASTACKAgent.Token = AgentDataFromIM.Token
 	DATASTACKAgent.AgentVersion = AgentDataFromIM.AgentVersion
 	DATASTACKAgent.AppName = AgentDataFromIM.AppName
+	DATASTACKAgent.EncryptionKey = AgentDataFromIM.EncryptionKey
 	agent.SetUpAgent(data["central-folder"], &DATASTACKAgent, password, interactive, Logger)
 	DATASTACKAgent.StartAgent()
 }

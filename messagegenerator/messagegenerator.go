@@ -24,7 +24,7 @@ var ReleaseVersionChangedError = "The release version has been changed, please d
 var FlowAlreadyRunningError = "Flow Already Exist and Running."
 
 //NoFlowsExistError - no flows exists error
-var NoFlowsExistError = "No such Partner or Flow Exist."
+var NoFlowsExistError = "No such Flow Exist."
 
 //EncryptDecryptFileHandlerError - error during encryption or decryption
 var EncryptDecryptFileHandlerError = "Input filepath and Output filepath cannot be same, please change the output filepath and try again"

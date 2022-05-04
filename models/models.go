@@ -29,6 +29,7 @@ type AgentData struct {
 	Internal            bool   `json:"internal"`
 	Token               string `json:"token"`
 	Secret              string `json:"secret"`
+	EncryptionKey       string `json:"encryptionKey"`
 }
 
 //CentralHeartBeatRequest - agent central heartbeat request structure
@@ -153,4 +154,113 @@ type EncryptionDecryptionTool struct {
 //EncryptionDecryptionToolMessage - encryption decryption too message
 type EncryptionDecryptionToolMessage struct {
 	Message string `json:"message"`
+}
+
+//FlowWatcherProperties - watcher properties of that flow
+type FlowWatcherProperties struct {
+	AppName                string                         `json:"appName"`
+	AgentName              string                         `json:"agentName"`
+	FlowName               string                         `json:"flowName"`
+	FlowID                 string                         `json:"flowID"`
+	InputFolder            string                         `json:"inputFolder"`
+	BlockName              string                         `json:"blockName"`
+	StructureID            string                         `json:"structureID"`
+	UniqueRemoteTxn        bool                           `json:"uniqueRemoteTxn"`
+	UniqueRemoteTxnOptions UniqueRemoteTransactionOptions `json:"uniqueRemoteTxnOptions"`
+	FileExtensions         []FileExtensionStruct          `json:"fileExtensions"`
+	FileNameRegexes        []string                       `json:"fileRegex"`
+	MirrorEnabled          bool                           `json:"mirrorEnabled"`
+	OutputDirectories      []OutputDirectoryInfo          `json:"outputDirectories"`
+	TargetAgentID          string                         `json:"targetAgentID"`
+	WatcherType            string                         `json:"watcherType"`
+	Timer                  TimeBoundProperties            `json:"timer"`
+	Listener               bool                           `json:"listener"`
+	ErrorBlocks            bool                           `json:"errorBlocks"`
+}
+
+//MirrorDirectoryMetaData - mirror directory metadata
+type MirrorDirectoryMetaData struct {
+	OperatingSystem string                `json:"operatingSystem"`
+	MirrorPaths     []string              `json:"mirrorPaths"`
+	OutputDirectory []OutputDirectoryInfo `json:"outputDirectories"`
+	TargetAgentID   string                `json:"targetAgentID"`
+}
+
+//FileUploadMetaData - utility structure for file upload metadata
+type FileUploadMetaData struct {
+	FlowName                string                `json:"flowName"`
+	FlowID                  string                `json:"flowID"`
+	AgentID                 string                `json:"agentID"`
+	AgentName               string                `json:"agentName"`
+	AppName                 string                `json:"appName"`
+	OriginalFileName        string                `json:"originalFileName"`
+	OriginalFilePath        string                `json:"originalFilePath"`
+	NewFileName             string                `json:"newFileName"`
+	NewLocation             string                `json:"newLocation"`
+	Md5CheckSum             string                `json:"md5CheckSum"`
+	RemoteTxnID             string                `json:"remoteTxnID"`
+	DataStackTxnID          string                `json:"dataStackTxnID"`
+	InputDirectory          string                `json:"inputDirectory"`
+	BlockName               string                `json:"blockName"`
+	StructureID             string                `json:"structureID"`
+	ErrorMessage            string                `json:"errorMessage"`
+	UniqueRemoteTransaction string                `json:"uniqueRemoteTransaction"`
+	UniqueFileName          string                `json:"uniqueFileName"`
+	UniqueChecksum          string                `json:"uniqueChecksum"`
+	DownloadAgentID         string                `json:"downloadAgentID"`
+	MirrorPath              string                `json:"mirrorPath"`
+	Token                   string                `json:"DATASTACKFileToken"`
+	FlowWatcherProperties   FlowWatcherProperties `json:"flowWatcherProperties"`
+}
+
+//ErrorFlowRequestData - request data for error flow
+type ErrorFlowRequestData struct {
+	AppName    string `json:"appName"`
+	AgentID    string `json:"agentId"`
+	AgentName  string `json:"agentName"`
+	FlowID     string `json:"flowId"`
+	FlowName   string `json:"flowName"`
+	NodeType   string `json:"nodeType"`
+	NodeID     string `json:"nodeId"`
+	Message    string `json:"message"`
+	StackTrace string `json:"stackTrace"`
+	StatusCode string `json:"statusCode"`
+}
+
+//PendingFileMetadata - pending file metadata
+type QueuedFileMetadata struct {
+	FlowProperties FlowWatcherProperties
+	TimeStamp      time.Time
+	Entry          TransferLedgerEntry
+}
+
+//FileUploadErrorMetaData - file upload error meta data
+type FileUploadErrorMetaData struct {
+	ErrorMessage   string `json:"errorMessage"`
+	RemoteTxnID    string `json:"remoteTxnID"`
+	DATASTACKTxnID string `json:"dataStackTxnID"`
+}
+
+//InteractionMetadata - metadata for interaction
+type InteractionMetadata struct {
+	FileSuffix        string   `json:"fileSuffix"`
+	InputDirectory    string   `json:"inputDirectory"`
+	OutputDirectory   []string `json:"outputDirectory"`
+	BlockName         string   `json:"blockName"`
+	StructureID       string   `json:"structureID"`
+	SequenceNo        int      `json:"sequenceNo"`
+	RemoteTxnID       string   `json:"remoteTxnID"`
+	DataStackTxnID    string   `json:"dataStackTxnID"`
+	OriginalFileName  string   `json:"originalFileName"`
+	Md5CheckSum       string   `json:"md5CheckSum"`
+	Size              string   `json:"size"`
+	MACAddress        string   `json:"macAddress"`
+	IPAddress         string   `json:"IPAddress"`
+	Encrypt           string   `json:"encrypt"`
+	SuccessFlow       bool     `json:"successFlow"`
+	BaseInteractionID string   `json:"baseInteractionID" bson:"baseInteractionID"`
+	ReattemptCount    int      `json:"reattemptCount" bson:"reattemptCount"`
+	AttemptNo         int      `json:"attemptNo" bson:"attemptNo"`
+	MirrorPath        string   `json:"mirrorPath" bson:"mirrorPath"`
+	OS                string   `json:"os" bson:"os"`
 }

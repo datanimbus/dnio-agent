@@ -2,8 +2,8 @@
 set -e
 if [ -f $WORKSPACE/../TOGGLE ]; then
     echo "****************************************************"
-    echo "data.stack:b2bgw :: Toggle mode is on, terminating build"
-    echo "data.stack:b2bgw :: BUILD CANCLED"
+    echo "data.stack:agent :: Toggle mode is on, terminating build"
+    echo "data.stack:agent :: BUILD CANCLED"
     echo "****************************************************"
     exit 0
 fi
@@ -28,93 +28,93 @@ if [ $1 ]; then
 fi
 if [ ! $REL ]; then
     echo "****************************************************"
-    echo "data.stack:b2bgw :: Please Create file DATA_STACK_RELEASE with the releaese at $WORKSPACE or provide it as 1st argument of this script."
-    echo "data.stack:b2bgw :: BUILD FAILED"
+    echo "data.stack:agent :: Please Create file DATA_STACK_RELEASE with the releaese at $WORKSPACE or provide it as 1st argument of this script."
+    echo "data.stack:agent :: BUILD FAILED"
     echo "****************************************************"
     exit 0
 fi
 TAG=$REL
-if [ $2 ]; then
-    TAG=$TAG"-"$2
-fi
+# if [ $2 ]; then
+#     TAG=$TAG"-"$2
+# fi
 if [ $3 ]; then
     BRANCH=$3
 fi
-if [ $CICD ]; then
-    echo "****************************************************"
-    echo "data.stack:b2bgw :: CICI env found"
-    echo "****************************************************"
-    TAG=$TAG"_"$cDate
-    if [ ! -f $WORKSPACE/../DATA_STACK_NAMESPACE ]; then
-        echo "****************************************************"
-        echo "data.stack:b2bgw :: Please Create file DATA_STACK_NAMESPACE with the namespace at $WORKSPACE"
-        echo "data.stack:b2bgw :: BUILD FAILED"
-        echo "****************************************************"
-        exit 0
-    fi
-    DATA_STACK_NS=`cat $WORKSPACE/../DATA_STACK_NAMESPACE`
-fi
+# if [ $CICD ]; then
+#     echo "****************************************************"
+#     echo "data.stack:agent :: CICI env found"
+#     echo "****************************************************"
+#     # TAG=$TAG"_"$cDate
+#     if [ ! -f $WORKSPACE/../DATA_STACK_NAMESPACE ]; then
+#         echo "****************************************************"
+#         echo "data.stack:agent :: Please Create file DATA_STACK_NAMESPACE with the namespace at $WORKSPACE"
+#         echo "data.stack:agent :: BUILD FAILED"
+#         echo "****************************************************"
+#         exit 0
+#     fi
+#     DATA_STACK_NS=`cat $WORKSPACE/../DATA_STACK_NAMESPACE`
+# fi
 
-sh $WORKSPACE/scripts/prepare_yaml.sh $REL $2
-
-echo "****************************************************"
-echo "data.stack:b2bgw :: Using build :: "$TAG
-echo "****************************************************"
+# sh $WORKSPACE/scripts/prepare_yaml.sh $REL $2
 
 echo "****************************************************"
-echo "data.stack:b2bgw :: Adding IMAGE_TAG in Dockerfile :: "$TAG
+echo "data.stack:agent :: Using build :: "$TAG
+echo "****************************************************"
+
+echo "****************************************************"
+echo "data.stack:agent :: Adding IMAGE_TAG in Dockerfile :: "$TAG
 echo "****************************************************"
 sed -i.bak s#__image_tag__#$TAG# Dockerfile
 
-if [ -f $WORKSPACE/../CLEAN_BUILD_B2BGW ]; then
+if [ -f $WORKSPACE/../CLEAN_BUILD_AGENT ]; then
     echo "****************************************************"
-    echo "data.stack:b2bgw :: Doing a clean build"
-    echo "****************************************************"
-
-    docker build --no-cache -t data.stack:b2bgw.$TAG .
-    rm $WORKSPACE/../CLEAN_BUILD_B2BGW
-
-    echo "****************************************************"
-    echo "data.stack:b2bgw :: Copying deployment files"
+    echo "data.stack:agent :: Doing a clean build"
     echo "****************************************************"
 
-    if [ $CICD ]; then
-        sed -i.bak s#__docker_registry_server__#$DOCKER_REG# b2bgw.yaml
-        sed -i.bak s/__release_tag__/"'$REL'"/ b2bgw.yaml
-        sed -i.bak s#__release__#$TAG# b2bgw.yaml
-        sed -i.bak s#__namespace__#$DATA_STACK_NS# b2bgw.yaml
-        sed -i.bak '/imagePullSecrets/d' b2bgw.yaml
-        sed -i.bak '/- name: regsecret/d' b2bgw.yaml
+    docker build --no-cache -t data.stack:agent.$TAG .
+    rm $WORKSPACE/../CLEAN_BUILD_AGENT
 
-        kubectl delete deploy b2bgw -n $DATA_STACK_NS || true # deleting old deployement
-        kubectl delete service b2bgw -n $DATA_STACK_NS || true # deleting old service
-        kubectl delete service b2bgw-internal -n $DATA_STACK_NS || true # deleting old service
-        #creating b2bgww deployment
-        kubectl create -f b2bgw.yaml
-    fi
+    # echo "****************************************************"
+    # echo "data.stack:agent :: Copying deployment files"
+    # echo "****************************************************"
+
+    # if [ $CICD ]; then
+    #     sed -i.bak s#__docker_registry_server__#$DOCKER_REG# agent.yaml
+    #     sed -i.bak s/__release_tag__/"'$REL'"/ agent.yaml
+    #     sed -i.bak s#__release__#$TAG# agent.yaml
+    #     sed -i.bak s#__namespace__#$DATA_STACK_NS# agent.yaml
+    #     sed -i.bak '/imagePullSecrets/d' agent.yaml
+    #     sed -i.bak '/- name: regsecret/d' agent.yaml
+
+    #     kubectl delete deploy agent -n $DATA_STACK_NS || true # deleting old deployement
+    #     kubectl delete service agent -n $DATA_STACK_NS || true # deleting old service
+    #     kubectl delete service agent-internal -n $DATA_STACK_NS || true # deleting old service
+    #     #creating agentw deployment
+    #     kubectl create -f agent.yaml
+    # fi
 
 else
     echo "****************************************************"
-    echo "data.stack:b2bgw :: Doing a normal build"   
+    echo "data.stack:agent :: Doing a normal build"   
     echo "****************************************************"
-    docker build -t data.stack:b2bgw.$TAG .
-    if [ $CICD ]; then
-        if [ $DOCKER_REG ]; then
-            kubectl set image deployment/b2bgw b2bgw=$DOCKER_REG/data.stack:b2bgw.$TAG -n $DATA_STACK_NS --record=true
-        else 
-            kubectl set image deployment/b2bgw b2bgw=data.stack:b2bgw.$TAG -n $DATA_STACK_NS --record=true
-        fi
-    fi
+    docker build -t data.stack:agent.$TAG .
+    # if [ $CICD ]; then
+    #     if [ $DOCKER_REG ]; then
+    #         kubectl set image deployment/agent agent=$DOCKER_REG/data.stack:agent.$TAG -n $DATA_STACK_NS --record=true
+    #     else 
+    #         kubectl set image deployment/agent agent=data.stack:agent.$TAG -n $DATA_STACK_NS --record=true
+    #     fi
+    # fi
 fi
 if [ $DOCKER_REG ]; then
     echo "****************************************************"
-    echo "data.stack:b2bgw :: Docker Registry found, pushing image"
+    echo "data.stack:agent :: Docker Registry found, pushing image"
     echo "****************************************************"
 
-    docker tag data.stack:b2bgw.$TAG $DOCKER_REG/data.stack:b2bgw.$TAG
-    docker push $DOCKER_REG/data.stack:b2bgw.$TAG
+    docker tag data.stack:agent.$TAG $DOCKER_REG/data.stack:agent.$TAG
+    docker push $DOCKER_REG/data.stack:agent.$TAG
 fi
 echo "****************************************************"
-echo "data.stack:b2bgw :: BUILD SUCCESS :: data.stack:b2bgw.$TAG"
+echo "data.stack:agent :: BUILD SUCCESS :: data.stack:agent.$TAG"
 echo "****************************************************"
-echo $TAG > $WORKSPACE/../LATEST_B2BGW
+echo $TAG > $WORKSPACE/../LATEST_AGENT
