@@ -18,18 +18,22 @@ type LoginAPIResponse struct {
 
 //AgentDataFromIM - agent information from IM
 type AgentData struct {
-	ID                  string `json:"_id"`
-	Active              bool   `json:"active"`
-	AppName             string `json:"app"`
-	AgentName           string `json:"name"`
-	AgentVersion        int64  `json:"__v"`
-	EncryptFile         bool   `json:"encryptFile"`
-	RetainFileOnSuccess bool   `json:"retainFileOnSuccess"`
-	RetainFileOnError   bool   `json:"retainFileOnError"`
-	Internal            bool   `json:"internal"`
-	Token               string `json:"token"`
-	Secret              string `json:"secret"`
-	EncryptionKey       string `json:"encryptionKey"`
+	ID                     string `json:"_id"`
+	Active                 bool   `json:"active"`
+	AppName                string `json:"app"`
+	AgentName              string `json:"name"`
+	AgentVersion           int64  `json:"__v"`
+	EncryptFile            bool   `json:"encryptFile"`
+	RetainFileOnSuccess    bool   `json:"retainFileOnSuccess"`
+	RetainFileOnError      bool   `json:"retainFileOnError"`
+	Internal               bool   `json:"internal"`
+	Token                  string `json:"token"`
+	Secret                 string `json:"secret"`
+	EncryptionKey          string `json:"encryptionKey"`
+	UploadRetryCounter     string `json:"uploadRetryCounter"`
+	DownloadRetryCounter   string `json:"downloadRetryCounter"`
+	MaxConcurrentUploads   int    `json:"maxConcurrentUploads"`
+	MaxConcurrentDownloads int    `json:"maxConcurrentDownloads"`
 }
 
 //CentralHeartBeatRequest - agent central heartbeat request structure
@@ -42,7 +46,7 @@ type CentralHeartBeatRequest struct {
 type CentralHeartBeatResponse struct {
 	TransferLedgerEntries     []TransferLedgerEntry `json:"transferLedgerEntries"`
 	Status                    string                `json:"status"`
-	AgentMaxConcurrentUploads string                `json:"agentMaxConcurrentUploads"`
+	AgentMaxConcurrentUploads int                   `json:"agentMaxConcurrentUploads"`
 }
 
 //TransferLedgerEntry - TransferLedgerEntry structure of DB
@@ -256,11 +260,52 @@ type InteractionMetadata struct {
 	Size              string   `json:"size"`
 	MACAddress        string   `json:"macAddress"`
 	IPAddress         string   `json:"IPAddress"`
-	Encrypt           string   `json:"encrypt"`
+	Encrypt           bool     `json:"encrypt"`
 	SuccessFlow       bool     `json:"successFlow"`
 	BaseInteractionID string   `json:"baseInteractionID" bson:"baseInteractionID"`
 	ReattemptCount    int      `json:"reattemptCount" bson:"reattemptCount"`
 	AttemptNo         int      `json:"attemptNo" bson:"attemptNo"`
 	MirrorPath        string   `json:"mirrorPath" bson:"mirrorPath"`
 	OS                string   `json:"os" bson:"os"`
+}
+
+//DownloadFileRequestMetaData - utility structure for any file download request
+type DownloadFileRequestMetaData struct {
+	FileName              string   `json:"fileName"`
+	RemoteTxnID           string   `json:"remoteTxnID"`
+	DataStackTxnID        string   `json:"dataStackTxnID"`
+	Checksum              string   `json:"checksum"`
+	FileLocation          []string `json:"outputDirectory"`
+	BlockName             string   `json:"blockName"`
+	SequenceNo            string   `json:"sequenceNo"`
+	StructureID           string   `json:"structureID"`
+	HeaderOutputDirectory string   `json:"headerOutputDirectory"`
+	MirrorDirectory       string   `json:"mirrorDirectory"`
+	FileID                string   `json:"fileID"`
+	Password              string   `json:"password"`
+	OperatingSystem       string   `json:"operatingSystem"`
+	SuccessBlock          string   `json:"successBlock"`
+	ChunkChecksumList     string   `json:"chunkChecksumList"`
+	TotalChunks           string   `json:"totalChunks"`
+	DownloadAgentID       string   `json:"downloadAgentID"`
+}
+
+//FileDownloadErrorMetaData - file download error meta data
+type FileDownloadErrorMetaData struct {
+	ErrorMessage   string `json:"errorMessage"`
+	RemoteTxnID    string `json:"remoteTxnID"`
+	DATASTACKTxnID string `json:"dataStackTxnID"`
+}
+
+//DownloadFileRequest - request structure for download file
+type DownloadFileRequest struct {
+	AgentName    string `json:"agentName"`
+	AgentID      string `json:"agentID"`
+	AgentVersion string `json:"agentVersion"`
+	FileName     string `json:"fileName"`
+	FlowName     string `json:"flowName"`
+	FlowID       string `json:"flowID"`
+	AppName      string `json:"appName"`
+	FileID       string `json:"fileID"`
+	Encryption   string `json:"encryption"`
 }

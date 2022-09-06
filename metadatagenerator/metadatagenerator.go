@@ -3,6 +3,7 @@ package metadatagenerator
 import (
 	"ds-agent/models"
 	"encoding/json"
+	"path/filepath"
 	"strconv"
 	"strings"
 )
@@ -91,12 +92,51 @@ func GenerateFileUploadedInteractionMetaData(inputDirectory string, blockName st
 	metaData.Md5CheckSum = checksum
 	metaData.IPAddress = ipAddress
 	metaData.MACAddress = macAddress
-	metaData.Encrypt = strconv.FormatBool(encrypt)
+	metaData.Encrypt = encrypt
 	metaData.BaseInteractionID = baseInteractionID
 	metaData.AttemptNo = attemptNo
 	metaData.ReattemptCount = reattemptCount
 	metaData.MirrorPath = mirrorPath
 	metaData.OS = os
+	byteData, _ := json.Marshal(metaData)
+	return string(byteData)
+}
+
+//GenerateFileDownloadErrorMetaData - generate file download error meta data
+func GenerateFileDownloadErrorMetaData(errorMessage string, remoteTxnID string, dataStackTxnID string) string {
+	metaData := models.FileDownloadErrorMetaData{}
+	metaData.ErrorMessage = errorMessage
+	metaData.DATASTACKTxnID = dataStackTxnID
+	metaData.RemoteTxnID = remoteTxnID
+	byteData, _ := json.Marshal(metaData)
+	return string(byteData)
+}
+
+//GenerateFileDownloadedInteractionMetaData - generate file download interaction meta data
+func GenerateFileDownloadedInteractionMetaData(outputDirectory []string, blockName string, size string, fileName string, sequenceNo string, structureID string, remoteTxnID string, dataStackTxnID string, checksum string, ipAddress string, macAddress string, encrypt bool, successFlow string) string {
+	metaData := models.InteractionMetadata{}
+	for _, dir := range outputDirectory {
+		path, _ := filepath.Abs(dir)
+		metaData.OutputDirectory = append(metaData.OutputDirectory, path)
+	}
+	metaData.BlockName = blockName
+	metaData.Size = size
+	fileNameSplitArray := strings.Split(fileName, ".")
+	metaData.FileSuffix = fileNameSplitArray[len(fileNameSplitArray)-1]
+	metaData.OriginalFileName = fileName
+	metaData.SequenceNo, _ = strconv.Atoi(sequenceNo)
+	metaData.StructureID = structureID
+	metaData.RemoteTxnID = remoteTxnID
+	metaData.DataStackTxnID = dataStackTxnID
+	metaData.Md5CheckSum = checksum
+	metaData.IPAddress = ipAddress
+	metaData.MACAddress = macAddress
+	metaData.Encrypt = encrypt
+	if successFlow == "true" {
+		metaData.SuccessFlow = true
+	} else {
+		metaData.SuccessFlow = false
+	}
 	byteData, _ := json.Marshal(metaData)
 	return string(byteData)
 }

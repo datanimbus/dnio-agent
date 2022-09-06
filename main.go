@@ -247,7 +247,8 @@ func verifyAgentPassword(password string) string {
 			Logger.Error("Error unmarshalling agent data from IM - " + err.Error())
 			os.Exit(0)
 		}
-		Logger.Info("Agent Successfuly Logged In ")
+		Logger.Info("Agent Successfuly Logged In")
+		Logger.Debug("Agent details fetched -  %v ", AgentDataFromIM)
 	}
 	return string(pass)
 }
@@ -269,6 +270,10 @@ func startAgent(confFilePath string, data map[string]string, password string, in
 	DATASTACKAgent.AgentVersion = AgentDataFromIM.AgentVersion
 	DATASTACKAgent.AppName = AgentDataFromIM.AppName
 	DATASTACKAgent.EncryptionKey = AgentDataFromIM.EncryptionKey
+	DATASTACKAgent.UploadRetryCounter = AgentDataFromIM.UploadRetryCounter
+	DATASTACKAgent.DownloadRetryCounter = AgentDataFromIM.DownloadRetryCounter
+	DATASTACKAgent.MaxConcurrentUploads = AgentDataFromIM.MaxConcurrentUploads
+	DATASTACKAgent.MaxConcurrentDownloads = AgentDataFromIM.MaxConcurrentDownloads
 	agent.SetUpAgent(data["central-folder"], &DATASTACKAgent, password, interactive, Logger)
 	DATASTACKAgent.StartAgent()
 }

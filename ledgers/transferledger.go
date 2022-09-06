@@ -113,6 +113,18 @@ const (
 
 	//FILEUPLOADTOBMERROR - file upload to bm error
 	FILEUPLOADTOBMERROR = "FILE_UPLOAD_TO_BM_ERROR"
+
+	//DOWNLOADERROR - error occurred in either process
+	DOWNLOADERROR = "DOWNLOAD_ERROR"
+
+	//OUTPUTDIRECTORYDOESNOTEXISTERROR - output directory doesn't exist error
+	OUTPUTDIRECTORYDOESNOTEXISTERROR = "OUTPUT_DIRECTORY_DOES_NOT_EXIST_ERROR"
+
+	//DOWNLOADED - status when file has been successfully downloaded
+	DOWNLOADED = "DOWNLOADED"
+
+	//REDOWNLOADED - status when file get redownloaded
+	REDOWNLOADED = "REDOWNLOADED"
 )
 
 //TransferLedger - Base DB struct
@@ -131,6 +143,8 @@ type TransferLedgerService interface {
 	CompactDB() error
 	GetQueuedOperations(readCountLimit int) ([]models.TransferLedgerEntry, error)
 	GetFileUploadRequests(readCountLimit int) ([]models.TransferLedgerEntry, error)
+	GetFileDownloadRequests(readCountLimit int) ([]models.TransferLedgerEntry, error)
+	IsFileAlreadyDownloaded(fileID string) bool
 }
 
 //InitTransferLedger - initialize DB
@@ -279,4 +293,39 @@ func (db *TransferLedger) GetFileUploadRequests(readCountLimit int) ([]models.Tr
 		return nil, err
 	}
 	return transferLedgerEntries, nil
+}
+
+//GetFileDownloadRequests - get file download requests
+func (db *TransferLedger) GetFileDownloadRequests(readCountLimit int) ([]models.TransferLedgerEntry, error) {
+	transferLedgerEntries := []models.TransferLedgerEntry{}
+	actions := []string{}
+	actions = append(actions, DOWNLOADREQUEST)
+	actions = append(actions, REDOWNLOADFILEREQUEST)
+	query := db.DB.Select(q.Eq("EntryType", "IN"), q.Eq("SentOrRead", false), q.In("Action", actions)).Limit(readCountLimit)
+	err := query.Find(&transferLedgerEntries)
+	if fmt.Sprintf("%s", err) == "not found" {
+		return transferLedgerEntries, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+	return transferLedgerEntries, nil
+}
+
+//IsFileAlreadyDownloaded - update an existing entry to transfer ledger
+func (db *TransferLedger) IsFileAlreadyDownloaded(fileID string) bool {
+	transferLedgerEntries := []models.TransferLedgerEntry{}
+	query := db.DB.Select(q.Eq("Action", "DOWNLOADED"+fileID), q.Eq("SentOrRead", true))
+	query.Limit(2)
+	err := query.Find(&transferLedgerEntries)
+	if fmt.Sprintf("%s", err) == "not found" {
+		return false
+	}
+	if err != nil {
+		return false
+	}
+	if len(transferLedgerEntries) > 0 {
+		return true
+	}
+	return false
 }

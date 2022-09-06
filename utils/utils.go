@@ -11,6 +11,7 @@ import (
 	"crypto/tls"
 	"ds-agent/messagegenerator"
 	"ds-agent/models"
+	"encoding/base64"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -439,7 +440,7 @@ func (Utils *UtilsService) Compress(data []byte) []byte {
 	_, _ = w.Write(data)
 	w.Close()
 	compressedData, _ := ioutil.ReadAll(&b)
-	return compressedData
+	return []byte(base64.StdEncoding.EncodeToString(compressedData))
 }
 
 //Decompress - decompressing file chunk
@@ -469,7 +470,7 @@ func (Utils *UtilsService) EncryptData(data []byte, passphrase string) ([]byte, 
 		return nil, err
 	}
 	ciphertext := gcm.Seal(nonce, nonce, data, nil)
-	return ciphertext, nil
+	return []byte(base64.StdEncoding.EncodeToString(ciphertext)), nil
 }
 
 //DecryptData - used for decryption of data
