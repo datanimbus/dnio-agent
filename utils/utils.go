@@ -455,7 +455,7 @@ func (Utils *UtilsService) Decompress(data []byte) []byte {
 func createHash(key string) string {
 	hasher := md5.New()
 	hasher.Write([]byte(key))
-	return hex.EncodeToString(hasher.Sum(nil))
+	return hex.EncodeToString(hasher.Sum(nil)[:16])
 }
 
 //EncryptData - used for encryption of data
@@ -490,7 +490,12 @@ func (Utils *UtilsService) DecryptData(data []byte, passphrase string) ([]byte, 
 	if err != nil {
 		return nil, err
 	}
-	return plaintext, nil
+	decodedData, err := base64.StdEncoding.DecodeString(string(plaintext))
+	if err != nil {
+		fmt.Println("Decoding Data Error = ", err)
+		return nil, err
+	}
+	return decodedData, nil
 }
 
 //Get64BitBinaryStringNumber - convert a int64 number to 64 bit string

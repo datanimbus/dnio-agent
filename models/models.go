@@ -52,11 +52,11 @@ type CentralHeartBeatResponse struct {
 //TransferLedgerEntry - TransferLedgerEntry structure of DB
 type TransferLedgerEntry struct {
 	ID             string    `storm:"id" bson:"id"`
-	AgentID        string    `json:"agentID" bson:"AgentID"`
+	AgentID        string    `json:"agentId" bson:"AgentID"`
 	AppName        string    `json:"appName" bson:"AppName"`
 	AgentName      string    `json:"agentName" bson:"AgentName"`
 	FlowName       string    `json:"flowName" bson:"FlowName"`
-	FlowID         string    `json:"flowID" bson:"FlowID"`
+	FlowID         string    `json:"flowId" bson:"FlowID"`
 	DeploymentName string    `json:"deploymentName" bson:"DeploymentName"`
 	Action         string    `json:"action" bson:"Action"`
 	MetaData       string    `json:"metaData" bson:"MetaData"`
@@ -68,7 +68,7 @@ type TransferLedgerEntry struct {
 
 //MonitoringLedgerEntry - entry structure for flowledger entry
 type MonitoringLedgerEntry struct {
-	AgentID            string         `storm:"id" json:"agentID" bson:"AgentID"`
+	AgentID            string         `storm:"id" json:"agentId" bson:"AgentID"`
 	AppName            string         `json:"appName" bson:"AppName"`
 	AgentName          string         `json:"agentName" bson:"AgentName"`
 	HeartBeatFrequency string         `json:"heartBeatFrequency" bson:"HeartBeatFrequency"`
@@ -83,14 +83,14 @@ type MonitoringLedgerEntry struct {
 
 //PendingFiles - pending files struct
 type PendingFiles struct {
-	FlowID string `json:"flowID" bson:"FlowID"`
+	FlowID string `json:"flowId" bson:"FlowID"`
 	Count  int    `json:"count" bson:"Count"`
 }
 
 //FlowDefinitionResponse - response structure for flow creation request
 type FlowDefinitionResponse struct {
 	FlowName                       string                         `json:"flowName"`
-	FlowID                         string                         `json:"flowID"`
+	FlowID                         string                         `json:"flowId"`
 	FileSuffix                     string                         `json:"fileSuffix"`
 	DeploymentName                 string                         `json:"deploymentName"`
 	InputDirectory                 []InputDirectoryInfo           `json:"inputDirectories"`
@@ -165,7 +165,7 @@ type FlowWatcherProperties struct {
 	AppName                string                         `json:"appName"`
 	AgentName              string                         `json:"agentName"`
 	FlowName               string                         `json:"flowName"`
-	FlowID                 string                         `json:"flowID"`
+	FlowID                 string                         `json:"flowId"`
 	InputFolder            string                         `json:"inputFolder"`
 	BlockName              string                         `json:"blockName"`
 	StructureID            string                         `json:"structureID"`
@@ -193,8 +193,8 @@ type MirrorDirectoryMetaData struct {
 //FileUploadMetaData - utility structure for file upload metadata
 type FileUploadMetaData struct {
 	FlowName                string                `json:"flowName"`
-	FlowID                  string                `json:"flowID"`
-	AgentID                 string                `json:"agentID"`
+	FlowID                  string                `json:"flowId"`
+	AgentID                 string                `json:"agentId"`
 	AgentName               string                `json:"agentName"`
 	AppName                 string                `json:"appName"`
 	OriginalFileName        string                `json:"originalFileName"`
@@ -300,12 +300,11 @@ type FileDownloadErrorMetaData struct {
 //DownloadFileRequest - request structure for download file
 type DownloadFileRequest struct {
 	AgentName    string `json:"agentName"`
-	AgentID      string `json:"agentID"`
+	AgentID      string `json:"agentId"`
 	AgentVersion string `json:"agentVersion"`
 	FileName     string `json:"fileName"`
 	FlowName     string `json:"flowName"`
-	FlowID       string `json:"flowID"`
+	FlowID       string `json:"flowId"`
 	AppName      string `json:"appName"`
 	FileID       string `json:"fileID"`
-	Encryption   string `json:"encryption"`
 }

@@ -195,7 +195,7 @@ func verifyAgentPassword(password string) string {
 		Logger.Error(err)
 	}
 
-	URL := "https://{BaseURL}/bm/auth/login"
+	URL := "https://{BaseURL}/b2b/bm/auth/login"
 	URL = strings.Replace(URL, "{BaseURL}", confData["base-url"], -1)
 	Logger.Info("Connecting to integration manager - " + URL)
 	client := Utils.GetNewHTTPClient(nil)

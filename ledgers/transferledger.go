@@ -125,6 +125,12 @@ const (
 
 	//REDOWNLOADED - status when file get redownloaded
 	REDOWNLOADED = "REDOWNLOADED"
+
+	//CREATEAPIFLOWREQUEST - status when new api flow needs to be created
+	CREATEAPIFLOWREQUEST = "CREATE_API_FLOW_REQUEST"
+
+	//STOPAPIFLOWREQUEST - status when new api flow needs to be stopped
+	STOPAPIFLOWREQUEST = "STOP_API_FLOW_REQUEST"
 )
 
 //TransferLedger - Base DB struct
@@ -270,7 +276,7 @@ func (db *TransferLedger) CompactDB() error {
 //GetQueuedOperations - update an existing entry to transfer ledger
 func (db *TransferLedger) GetQueuedOperations(readCountLimit int) ([]models.TransferLedgerEntry, error) {
 	transferLedgerEntries := []models.TransferLedgerEntry{}
-	query := db.DB.Select(q.Eq("EntryType", "IN"), q.Eq("SentOrRead", false), q.Not(q.Eq("Action", REDOWNLOADFILEREQUEST)), q.Not(q.Eq("Action", DOWNLOADREQUEST)), q.Not(q.Eq("Action", UPLOADREQUEST)))
+	query := db.DB.Select(q.Eq("SentOrRead", false), q.Not(q.Eq("Action", REDOWNLOADFILEREQUEST)), q.Not(q.Eq("Action", DOWNLOADREQUEST)), q.Not(q.Eq("Action", UPLOADREQUEST)))
 	err := query.Find(&transferLedgerEntries)
 	if fmt.Sprintf("%s", err) == "not found" {
 		return transferLedgerEntries, nil
@@ -284,7 +290,7 @@ func (db *TransferLedger) GetQueuedOperations(readCountLimit int) ([]models.Tran
 //GetFileUploadRequests - get file upload requests
 func (db *TransferLedger) GetFileUploadRequests(readCountLimit int) ([]models.TransferLedgerEntry, error) {
 	transferLedgerEntries := []models.TransferLedgerEntry{}
-	query := db.DB.Select(q.Eq("EntryType", "IN"), q.Eq("SentOrRead", false), q.Eq("Action", UPLOADREQUEST)).Limit(readCountLimit)
+	query := db.DB.Select(q.Eq("SentOrRead", false), q.Eq("Action", UPLOADREQUEST)).Limit(readCountLimit)
 	err := query.Find(&transferLedgerEntries)
 	if fmt.Sprintf("%s", err) == "not found" {
 		return transferLedgerEntries, nil
@@ -301,7 +307,7 @@ func (db *TransferLedger) GetFileDownloadRequests(readCountLimit int) ([]models.
 	actions := []string{}
 	actions = append(actions, DOWNLOADREQUEST)
 	actions = append(actions, REDOWNLOADFILEREQUEST)
-	query := db.DB.Select(q.Eq("EntryType", "IN"), q.Eq("SentOrRead", false), q.In("Action", actions)).Limit(readCountLimit)
+	query := db.DB.Select(q.Eq("SentOrRead", false), q.In("Action", actions)).Limit(readCountLimit)
 	err := query.Find(&transferLedgerEntries)
 	if fmt.Sprintf("%s", err) == "not found" {
 		return transferLedgerEntries, nil
