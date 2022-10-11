@@ -5,7 +5,7 @@ if [ $WORKSPACE ]; then
 fi
 
 echo "****************************************************"
-echo "data.stack:b2bgw :: Fetching dependencies"
+echo "data.stack.b2b.agents :: Fetching dependencies"
 echo "****************************************************"
 go get -u github.com/gorilla/mux
 go get -u github.com/asdine/storm

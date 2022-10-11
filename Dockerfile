@@ -4,6 +4,7 @@
 ###############################################################################################
 
 FROM golang:1.17 AS agents
+ENV GOPROXY=direct
 
 # RUN apk add git
 # RUN apk add make
