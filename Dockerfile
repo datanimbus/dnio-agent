@@ -3,7 +3,7 @@
 # Go Agent Build
 ###############################################################################################
 
-FROM golang:1.14 AS agents
+FROM golang:1.17 AS agents
 
 # RUN apk add git
 # RUN apk add make
@@ -17,7 +17,6 @@ RUN go get -u github.com/howeyc/fsnotify
 RUN go get -u github.com/howeyc/gopass
 RUN go get -u go.mongodb.org/mongo-driver/bson
 RUN go get -u go.mongodb.org/mongo-driver/mongo
-RUN go get -u github.com/appveen/govault
 RUN go get -u github.com/appveen/go-log/log
 RUN go get -u github.com/kardianos/service
 RUN go get -u github.com/nats-io/go-nats-streaming
@@ -50,8 +49,8 @@ RUN apt-get install -y wget
 
 WORKDIR /app
 
-RUN wget --user xxxxx --password xxxxxx https://cicd.ds.appveen.com/agentbuild/out.key
-RUN wget --user xxxxx --password xxxxxx https://cicd.ds.appveen.com/agentbuild/cd786349a667ff05-SHA2.pem
+RUN wget --user __signing_key_user__ --password __signing_key_password__ https://cicd.ds.appveen.com/agentbuild/out.key
+RUN wget --user __signing_key_user__ --password __signing_key_password__ https://cicd.ds.appveen.com/agentbuild/cd786349a667ff05-SHA2.pem
 
 COPY --from=agents /app/exec ./exec
 COPY --from=agents /app/scriptFiles ./scriptFiles
