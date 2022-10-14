@@ -3,7 +3,7 @@
 # Go Agent Build
 ###############################################################################################
 
-FROM golang:1.17 AS agents
+FROM golang:1.19.2-alpine3.16 AS agents
 ENV GOPROXY=direct
 
 # RUN apk add git
