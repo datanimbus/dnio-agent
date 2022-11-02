@@ -308,3 +308,17 @@ type DownloadFileRequest struct {
 	AppName      string `json:"appName"`
 	FileID       string `json:"fileID"`
 }
+
+//FilePostProcessSuccessErrorMetaData - file post process error meta data
+type FilePostProcessSuccessErrorMetaData struct {
+	ErrorMessage   string `json:"errorMessage"`
+	RemoteTxnID    string `json:"remoteTxnID"`
+	DATASTACKTxnID string `json:"dataStackTxnID"`
+}
+
+//FilePostProcessFailureErrorMetaData - file post process error meta data
+type FilePostProcessFailureErrorMetaData struct {
+	ErrorMessage   string `json:"errorMessage"`
+	RemoteTxnID    string `json:"remoteTxnID"`
+	DATASTACKTxnID string `json:"dataStackTxnID"`
+}

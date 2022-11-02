@@ -131,9 +131,21 @@ const (
 
 	//STOPAPIFLOWREQUEST - status when new api flow needs to be stopped
 	STOPAPIFLOWREQUEST = "STOP_API_FLOW_REQUEST"
+
+	//FILEPROCESSEDSUCCESS - Action when file processed successfully from DATASTACK
+	FILEPROCESSEDSUCCESS = "FILE_PROCESSED_SUCCESS"
+
+	//FILEPROCESSEDERROR - Action when file processed unsuccessfully from DATASTACK
+	FILEPROCESSEDERROR = "FILE_PROCESSED_ERROR"
+
+	//POSTPROCESSSUCCESSERROR - error occurred in handling of file after processed message received
+	POSTPROCESSSUCCESSERROR = "POST_PROCESS_SUCCESS_ERROR"
+
+	//POSTPROCESSFAILUREERROR - error occurred in handling of file after processing failure message received
+	POSTPROCESSFAILUREERROR = "POST_PROCESS_FAILURE_ERROR"
 )
 
-//TransferLedger - Base DB struct
+// TransferLedger - Base DB struct
 type TransferLedger struct {
 	DB                     *storm.DB
 	STORE                  string
@@ -153,7 +165,7 @@ type TransferLedgerService interface {
 	IsFileAlreadyDownloaded(fileID string) bool
 }
 
-//InitTransferLedger - initialize DB
+// InitTransferLedger - initialize DB
 func InitTransferLedger(filePath string, store string) (*TransferLedger, error) {
 	db, err := storm.Open(filePath)
 	if err != nil {
@@ -168,7 +180,7 @@ func InitTransferLedger(filePath string, store string) (*TransferLedger, error) 
 	return &transferLedger, nil
 }
 
-//AddEntry - add new entry to transfer ledger
+// AddEntry - add new entry to transfer ledger
 func (db *TransferLedger) AddEntry(entry *models.TransferLedgerEntry) error {
 	if entry.ID == "" {
 		u := uuid.NewV4()
@@ -200,7 +212,7 @@ func (db *TransferLedger) handleLogsPurgeRequest() error {
 	return nil
 }
 
-//GetUnsentNotifications - get list of notifications to be sent
+// GetUnsentNotifications - get list of notifications to be sent
 func (db *TransferLedger) GetUnsentNotifications() ([]models.TransferLedgerEntry, error) {
 	transferLedgerEntries := []models.TransferLedgerEntry{}
 	query := db.DB.Select(q.Eq("EntryType", "OUT"), q.Eq("SentOrRead", false)).Limit(500)
@@ -214,7 +226,7 @@ func (db *TransferLedger) GetUnsentNotifications() ([]models.TransferLedgerEntry
 	return transferLedgerEntries, nil
 }
 
-//UpdateSentOrReadFieldOfEntry - update an existing entry field to transfer ledger
+// UpdateSentOrReadFieldOfEntry - update an existing entry field to transfer ledger
 func (db *TransferLedger) UpdateSentOrReadFieldOfEntry(entry *models.TransferLedgerEntry, val bool) error {
 	err := db.DB.UpdateField(entry, "SentOrRead", val)
 	if err != nil {
@@ -231,7 +243,7 @@ func (db *TransferLedger) UpdateSentOrReadFieldOfEntry(entry *models.TransferLed
 	return nil
 }
 
-//DeletePendingUploadRequestFromDB - deleting pending upload request from db on agent start
+// DeletePendingUploadRequestFromDB - deleting pending upload request from db on agent start
 func (db *TransferLedger) DeletePendingUploadRequestFromDB() (bool, error) {
 	query := db.DB.Select(q.Eq("SentOrRead", false), q.Eq("Action", UPLOADREQUEST))
 	err := query.Delete(new(models.TransferLedgerEntry))
@@ -247,7 +259,7 @@ func (db *TransferLedger) DeletePendingUploadRequestFromDB() (bool, error) {
 	return true, nil
 }
 
-//CompactDB - reduce DB size
+// CompactDB - reduce DB size
 func (db *TransferLedger) CompactDB() error {
 	var entries []models.TransferLedgerEntry
 	err := db.DB.Find("SentOrRead", false, &entries)
@@ -273,7 +285,7 @@ func (db *TransferLedger) CompactDB() error {
 	return nil
 }
 
-//GetQueuedOperations - update an existing entry to transfer ledger
+// GetQueuedOperations - update an existing entry to transfer ledger
 func (db *TransferLedger) GetQueuedOperations(readCountLimit int) ([]models.TransferLedgerEntry, error) {
 	transferLedgerEntries := []models.TransferLedgerEntry{}
 	query := db.DB.Select(q.Eq("SentOrRead", false), q.Not(q.Eq("Action", REDOWNLOADFILEREQUEST)), q.Not(q.Eq("Action", DOWNLOADREQUEST)), q.Not(q.Eq("Action", UPLOADREQUEST)))
@@ -287,7 +299,7 @@ func (db *TransferLedger) GetQueuedOperations(readCountLimit int) ([]models.Tran
 	return transferLedgerEntries, nil
 }
 
-//GetFileUploadRequests - get file upload requests
+// GetFileUploadRequests - get file upload requests
 func (db *TransferLedger) GetFileUploadRequests(readCountLimit int) ([]models.TransferLedgerEntry, error) {
 	transferLedgerEntries := []models.TransferLedgerEntry{}
 	query := db.DB.Select(q.Eq("SentOrRead", false), q.Eq("Action", UPLOADREQUEST)).Limit(readCountLimit)
@@ -301,7 +313,7 @@ func (db *TransferLedger) GetFileUploadRequests(readCountLimit int) ([]models.Tr
 	return transferLedgerEntries, nil
 }
 
-//GetFileDownloadRequests - get file download requests
+// GetFileDownloadRequests - get file download requests
 func (db *TransferLedger) GetFileDownloadRequests(readCountLimit int) ([]models.TransferLedgerEntry, error) {
 	transferLedgerEntries := []models.TransferLedgerEntry{}
 	actions := []string{}
@@ -318,7 +330,7 @@ func (db *TransferLedger) GetFileDownloadRequests(readCountLimit int) ([]models.
 	return transferLedgerEntries, nil
 }
 
-//IsFileAlreadyDownloaded - update an existing entry to transfer ledger
+// IsFileAlreadyDownloaded - update an existing entry to transfer ledger
 func (db *TransferLedger) IsFileAlreadyDownloaded(fileID string) bool {
 	transferLedgerEntries := []models.TransferLedgerEntry{}
 	query := db.DB.Select(q.Eq("Action", "DOWNLOADED"+fileID), q.Eq("SentOrRead", true))

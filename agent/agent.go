@@ -79,17 +79,17 @@ func (c *watcherCounter) Value() (x int) {
 var fileInUploadQueue = sync.Map{}
 var numberOfInputDirectoriesForFlow = sync.Map{}
 
-//FlowDirectories - list of input directories
+// FlowDirectories - list of input directories
 var FlowDirectories = make(map[string][]string)
 var watchingDirectoryMap = make(map[string]map[string]bool)
 var weHaveToWatchSubDirectories = make(map[string]map[string]bool)
 var rootFolderHashMap = make(map[string]map[string]string)
 var directoryAllocation = make(map[string]string)
 
-//QueuedFiles - To store pending file data
+// QueuedFiles - To store pending file data
 var QueuedFiles = make(map[string]models.QueuedFileMetadata)
 
-//AgentDetails - details of agent
+// AgentDetails - details of agent
 type AgentDetails struct {
 	UUID                   string
 	AgentID                string
@@ -140,7 +140,7 @@ type AgentDetails struct {
 	EncryptionKey          string
 }
 
-//AgentService - task of agent
+// AgentService - task of agent
 type AgentService interface {
 	StartAgent() error
 	getRunningOrPendingFlowsFromB2BManager()
@@ -165,7 +165,7 @@ type AgentService interface {
 	handleDownloadFileRequest(entry models.TransferLedgerEntry, blockOpener chan bool)
 }
 
-//SetUpAgent -  setting up the datastack-agent
+// SetUpAgent -  setting up the datastack-agent
 func SetUpAgent(centralFolder string, DATASTACKAgent *AgentDetails, pass string, interactive bool, logger logger.Logger) error {
 	var err error
 	DATASTACKAgent.FilesUploading = 0
@@ -222,7 +222,7 @@ func SetUpAgent(centralFolder string, DATASTACKAgent *AgentDetails, pass string,
 	return nil
 }
 
-//StartAgent - Entry point function to invoke remote machine agent for file upload/download
+// StartAgent - Entry point function to invoke remote machine agent for file upload/download
 func (DATASTACKAgent *AgentDetails) StartAgent() error {
 	var wg sync.WaitGroup
 	DATASTACKAgent.Logger.Info("Agent Starting....")
@@ -277,7 +277,7 @@ func (DATASTACKAgent *AgentDetails) StartAgent() error {
 	return nil
 }
 
-//GetRunningOrPendingFlowsFromB2BManager - get details of running or pending flows associated with this agent
+// GetRunningOrPendingFlowsFromB2BManager - get details of running or pending flows associated with this agent
 func (DATASTACKAgent *AgentDetails) getRunningOrPendingFlowsFromB2BManager() {
 	DATASTACKAgent.Logger.Info("Fetching the flow(s) information from BM")
 	var client = DATASTACKAgent.FetchHTTPClient()
@@ -315,7 +315,7 @@ func (DATASTACKAgent *AgentDetails) getRunningOrPendingFlowsFromB2BManager() {
 	}
 }
 
-//InitCentralHeartBeat - heartbeat for agents
+// InitCentralHeartBeat - heartbeat for agents
 func (DATASTACKAgent *AgentDetails) initCentralHeartBeat(wg *sync.WaitGroup) {
 	wg.Add(1)
 	defer wg.Done()
@@ -409,7 +409,7 @@ func (DATASTACKAgent *AgentDetails) initCentralHeartBeat(wg *sync.WaitGroup) {
 	}
 }
 
-//InitAgentServer start an server from agent side
+// InitAgentServer start an server from agent side
 func (DATASTACKAgent *AgentDetails) initAgentServer() error {
 	r := mux.NewRouter()
 	http.Handle("/", r)
@@ -432,7 +432,7 @@ func (DATASTACKAgent *AgentDetails) initAgentServer() error {
 	return err
 }
 
-//FetchHTTPClient -  getting http client with all certs
+// FetchHTTPClient -  getting http client with all certs
 func (DATASTACKAgent *AgentDetails) FetchHTTPClient() *http.Client {
 	client := DATASTACKAgent.Utils.GetNewHTTPClient(nil)
 	return client
@@ -620,7 +620,7 @@ func (DATASTACKAgent *AgentDetails) handleFlowCreateStartOrUpdateRequest(entry m
 
 func (DATASTACKAgent *AgentDetails) handleFlowStopRequest(entry models.TransferLedgerEntry) {
 	DATASTACKAgent.Logger.Info("Handling Flow Stop Request %s", entry.FlowName)
-	DATASTACKAgent.Logger.Debug("entry details -: %v", entry)
+	DATASTACKAgent.Logger.Debug("Entry details -: %v", entry)
 	flowID := entry.FlowID
 	if DATASTACKAgent.Flows[entry.AppName] == nil || DATASTACKAgent.Flows[entry.AppName][flowID] == nil {
 		DATASTACKAgent.Logger.Error("%s %s", entry.FlowName, messagegenerator.NoFlowsExistError)
@@ -663,7 +663,7 @@ func (DATASTACKAgent *AgentDetails) handleFlowStopRequest(entry models.TransferL
 	DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.FLOWSTOPPED, entry.MetaData, time.Now(), "OUT", false)
 }
 
-//CreateFlowFolderStructure - create flow folder structure
+// CreateFlowFolderStructure - create flow folder structure
 func (DATASTACKAgent *AgentDetails) createFlowFolderStructure(flowFolder string) error {
 	DATASTACKAgent.Utils.CheckFolderExistsOrCreateFolder(flowFolder)
 	DATASTACKAgent.Utils.CheckFolderExistsOrCreateFolder(flowFolder + string(os.PathSeparator) + "input")
@@ -1040,7 +1040,7 @@ func (DATASTACKAgent *AgentDetails) traverseThroughTheInputDirectoryStructure(ro
 	return subFolderPaths
 }
 
-//CompactDBHandler - reduce the size of transferledger.DB
+// CompactDBHandler - reduce the size of transferledger.DB
 func (DATASTACKAgent *AgentDetails) CompactDBHandler() {
 	c := cron.New()
 	c.AddFunc(DBSizeUpdateTimeRegEx, func() {
@@ -1106,12 +1106,12 @@ func (DATASTACKAgent *AgentDetails) handleQueuedJobs(wg *sync.WaitGroup) {
 					case ledgers.FLOWSTOPREQUEST:
 						go DATASTACKAgent.handleFlowStopRequest(entry)
 						return
-						// case ledgers.FILEPROCESSEDSUCCESS:
-						// 	go DATASTACKAgent.handleFileProcessedSuccessRequest(entry)
-						// 	return
-						// case ledgers.FILEPROCESSEDERROR:
-						// 	go DATASTACKAgent.handleFileProcessedFailureRequest(entry)
-						// 	return
+					case ledgers.FILEPROCESSEDSUCCESS:
+						go DATASTACKAgent.handleFileProcessedSuccessRequest(entry)
+						return
+					case ledgers.FILEPROCESSEDERROR:
+						go DATASTACKAgent.handleFileProcessedFailureRequest(entry)
+						return
 					}
 				}
 			}
@@ -1120,7 +1120,7 @@ func (DATASTACKAgent *AgentDetails) handleQueuedJobs(wg *sync.WaitGroup) {
 	}()
 }
 
-//QueuedFileUploadWatcher - Uploading queued file
+// QueuedFileUploadWatcher - Uploading queued file
 func (DATASTACKAgent *AgentDetails) QueuedFileUploadWatcher() {
 	c := cron.New()
 	c.AddFunc("@every 10m", func() {
@@ -1171,7 +1171,7 @@ func (DATASTACKAgent *AgentDetails) handleUploadFileRequest(entry models.Transfe
 	fileUploadMetaData.Token = DATASTACKAgent.Token
 
 	DATASTACKAgent.Logger.Info("Handling File Upload Request %s", entry.FlowName)
-	DATASTACKAgent.Logger.Debug("entry details -: %v", entry)
+	DATASTACKAgent.Logger.Debug("Entry details -: %v", entry)
 	DATASTACKAgent.Logger.Debug("Flow Retry Count -: %v", retryCount)
 
 	for i := 0; i < retryCount; i++ {
@@ -1225,7 +1225,7 @@ func (DATASTACKAgent *AgentDetails) handleUploadFileRequest(entry models.Transfe
 	blockOpener <- true
 }
 
-//SendFileInChunksToBM - sending file in chunks chunks
+// SendFileInChunksToBM - sending file in chunks chunks
 func (DATASTACKAgent *AgentDetails) SendFileInChunksToBM(entry models.TransferLedgerEntry, fileUploadMetaData models.FileUploadMetaData, encryptionDone bool, totalFileSize int64, encryptedChecksum string, decryptedChecksum string, totalChunks int, retryCounter int, totalRetriesDone int, flowFolder string, errorFolder string, password string) error {
 	var buffer []byte
 	var binSize string
@@ -1311,8 +1311,8 @@ func (DATASTACKAgent *AgentDetails) SendFileInChunksToBM(entry models.TransferLe
 				decryptedBuffer = nil
 			}
 
-			DATASTACKAgent.Logger.Trace("buffer %v", buffer)
-			DATASTACKAgent.Logger.Trace("buffer %v", string(buffer))
+			DATASTACKAgent.Logger.Trace("Buffer %v", buffer)
+			DATASTACKAgent.Logger.Trace("Buffer string %v", string(buffer))
 			bufferCheckSum := DATASTACKAgent.Utils.CalculateMD5ChecksumForByteSlice(buffer)
 			DATASTACKAgent.Logger.Info("Chunk length %v", len(buffer))
 			DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.UPLOADING, entry.MetaData, time.Now(), "OUT", false)
@@ -1335,6 +1335,8 @@ func (DATASTACKAgent *AgentDetails) SendFileInChunksToBM(entry models.TransferLe
 				client = DATASTACKAgent.FetchHTTPClient()
 				DATASTACKAgent.Logger.Info("Uploading chunk %v/%v  of  %s for flow  %s", i, totalChunks, fileUploadMetaData.OriginalFileName, entry.FlowName)
 				URL := DATASTACKAgent.BaseURL + "/b2b/bm/{app}/agent/utils/{agentId}/upload"
+				URL = strings.Replace(URL, "{app}", DATASTACKAgent.AppName, -1)
+				URL = strings.Replace(URL, "{agentId}", DATASTACKAgent.AgentID, -1)
 				req, _ := http.NewRequest("POST", URL, r)
 				req.Header.Set("DATA-STACK-Agent-Id", DATASTACKAgent.AgentID)
 				req.Header.Set("DATA-STACK-Agent-Name", DATASTACKAgent.AgentName)
@@ -1467,7 +1469,7 @@ func (DATASTACKAgent *AgentDetails) processQueuedUploads() {
 			}
 		}
 		queueFilesCount := len(transferLedgerEntries)
-		DATASTACKAgent.Logger.Info("Queuefilescount - ", queueFilesCount)
+		// DATASTACKAgent.Logger.Info("Queuefilescount - ", queueFilesCount)
 		if queueFilesCount == 0 {
 			time.Sleep(time.Duration(1) * time.Second)
 		} else if !DATASTACKAgent.Paused {
@@ -1537,7 +1539,7 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 	fileDownloadMetaData := models.DownloadFileRequestMetaData{}
 	err := json.Unmarshal([]byte(entry.MetaData), &fileDownloadMetaData)
 	if err != nil {
-		DATASTACKAgent.Logger.Error("file download error-1 json unmarshalling error %s ", messagegenerator.ExtractErrorMessageFromErrorObject(err))
+		DATASTACKAgent.Logger.Error("File download error-1 json unmarshalling error %s ", messagegenerator.ExtractErrorMessageFromErrorObject(err))
 		DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.DOWNLOADERROR, metadatagenerator.GenerateFileDownloadErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileDownloadMetaData.RemoteTxnID, fileDownloadMetaData.DataStackTxnID), time.Now(), "OUT", false)
 		blockOpener <- true
 		return
@@ -1548,7 +1550,7 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 		return
 	}
 	DATASTACKAgent.Logger.Info("Started file download for Flow-: %v, FlowId-: %v", entry.FlowName, entry.FlowID)
-	DATASTACKAgent.Logger.Debug("entry details %s", entry.MetaData)
+	DATASTACKAgent.Logger.Debug("Entry details %s", entry.MetaData)
 
 	var files []*os.File
 	mirrorOutputPath := fileDownloadMetaData.MirrorDirectory
@@ -1575,7 +1577,7 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 		} else {
 			file, err := os.Create(path + string(os.PathSeparator) + fileDownloadMetaData.FileName)
 			if err != nil {
-				DATASTACKAgent.Logger.Error("file download error - %s %s %s", entry.FlowName, fileDownloadMetaData.FileName, messagegenerator.ExtractErrorMessageFromErrorObject(err))
+				DATASTACKAgent.Logger.Error("File download error-2 - %s %s %s", entry.FlowName, fileDownloadMetaData.FileName, messagegenerator.ExtractErrorMessageFromErrorObject(err))
 				DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.DOWNLOADERROR, metadatagenerator.GenerateFileDownloadErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileDownloadMetaData.RemoteTxnID, fileDownloadMetaData.DataStackTxnID), time.Now(), "OUT", false)
 				blockOpener <- true
 				return
@@ -1600,13 +1602,13 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 			} else {
 				file, err := os.Create(path + string(os.PathSeparator) + fileDownloadMetaData.FileName)
 				if err != nil {
-					DATASTACKAgent.Logger.Error("file download error %s %s %s", entry.FlowName, fileDownloadMetaData.FileName, messagegenerator.ExtractErrorMessageFromErrorObject(err))
+					DATASTACKAgent.Logger.Error("File download error-3 %s %s %s", entry.FlowName, fileDownloadMetaData.FileName, messagegenerator.ExtractErrorMessageFromErrorObject(err))
 					DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.DOWNLOADERROR, metadatagenerator.GenerateFileDownloadErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileDownloadMetaData.RemoteTxnID, fileDownloadMetaData.DataStackTxnID), time.Now(), "OUT", false)
 					continue
 				}
 
 				if err != nil {
-					DATASTACKAgent.Logger.Error("file download error %s %s %s", entry.FlowName, fileDownloadMetaData.FileName, messagegenerator.ExtractErrorMessageFromErrorObject(err))
+					DATASTACKAgent.Logger.Error("File download error-4 %s %s %s", entry.FlowName, fileDownloadMetaData.FileName, messagegenerator.ExtractErrorMessageFromErrorObject(err))
 					DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.DOWNLOADERROR, metadatagenerator.GenerateFileDownloadErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileDownloadMetaData.RemoteTxnID, fileDownloadMetaData.DataStackTxnID), time.Now(), "OUT", false)
 					continue
 				}
@@ -1628,7 +1630,7 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 		file, err := os.Create(path)
 		DATASTACKAgent.Logger.Info("Started Downloading file process for file " + fileDownloadMetaData.FileName + " to " + path)
 		if err != nil {
-			DATASTACKAgent.Logger.Error("file download error %s %s %s", entry.FlowName, fileDownloadMetaData.FileName, messagegenerator.ExtractErrorMessageFromErrorObject(err))
+			DATASTACKAgent.Logger.Error("File download error-5 %s %s %s", entry.FlowName, fileDownloadMetaData.FileName, messagegenerator.ExtractErrorMessageFromErrorObject(err))
 			DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.DOWNLOADERROR, metadatagenerator.GenerateFileDownloadErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileDownloadMetaData.RemoteTxnID, fileDownloadMetaData.DataStackTxnID), time.Now(), "OUT", false)
 			blockOpener <- true
 			return
@@ -1662,7 +1664,7 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 
 	payload, err := json.Marshal(data)
 	if err != nil {
-		DATASTACKAgent.Logger.Error("file download error payload marshalling - %s ", messagegenerator.ExtractErrorMessageFromErrorObject(err))
+		DATASTACKAgent.Logger.Error("File download error-6 payload marshalling - %s ", messagegenerator.ExtractErrorMessageFromErrorObject(err))
 		DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.DOWNLOADERROR, metadatagenerator.GenerateFileDownloadErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileDownloadMetaData.RemoteTxnID, fileDownloadMetaData.DataStackTxnID), time.Now(), "OUT", false)
 		RemoveFiles(files)
 		blockOpener <- true
@@ -1671,9 +1673,9 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 
 	var downloadFileError error
 	var dataToWriteInFile []byte
-	DATASTACKAgent.Logger.Trace("fileDownloadMetaData.ChunkChecksumList - ", fileDownloadMetaData.ChunkChecksumList)
+	DATASTACKAgent.Logger.Trace("FileDownloadMetaData.ChunkChecksumList - ", fileDownloadMetaData.ChunkChecksumList)
 	checksumsToVerify := strings.Split(fileDownloadMetaData.ChunkChecksumList, ",")
-	DATASTACKAgent.Logger.Trace("checksumsToVerify - ", checksumsToVerify)
+	DATASTACKAgent.Logger.Trace("ChecksumsToVerify - ", checksumsToVerify)
 	currentChunk := 1
 	TotalChunks, _ := strconv.Atoi(fileDownloadMetaData.TotalChunks)
 
@@ -1686,6 +1688,8 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 			DATASTACKAgent.Logger.Info("Downloading chunk %v/%v of %s for flow %s", currentChunk, TotalChunks, fileDownloadMetaData.FileName, entry.FlowName)
 			client = DATASTACKAgent.FetchHTTPClient()
 			URL := DATASTACKAgent.BaseURL + "/b2b/bm/{app}/agent/utils/{agentId}/download"
+			URL = strings.Replace(URL, "{app}", DATASTACKAgent.AppName, -1)
+			URL = strings.Replace(URL, "{agentId}", DATASTACKAgent.AgentID, -1)
 			req, err := http.NewRequest("POST", URL, bytes.NewReader(payload))
 			req.Header.Set("Content-Type", "application/json")
 			req.Header.Set("DATA-STACK-Agent-File-Id", data.FileID)
@@ -1697,7 +1701,7 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 			req.Header.Set("Authorization", "JWT "+DATASTACKAgent.Token)
 			if err != nil {
 				downloadFileError = err
-				DATASTACKAgent.Logger.Error("file download error-3 %s %s %s", entry.FlowName, fileDownloadMetaData.FileName, messagegenerator.ExtractErrorMessageFromErrorObject(err))
+				DATASTACKAgent.Logger.Error("File download error-7 %s %s %s", entry.FlowName, fileDownloadMetaData.FileName, messagegenerator.ExtractErrorMessageFromErrorObject(err))
 				DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.DOWNLOADERROR, metadatagenerator.GenerateFileDownloadErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileDownloadMetaData.RemoteTxnID, fileDownloadMetaData.DataStackTxnID), time.Now(), "OUT", false)
 				break
 			}
@@ -1705,7 +1709,7 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 			response, err := client.Do(req)
 			if err != nil {
 				downloadFileError = err
-				DATASTACKAgent.Logger.Error("file download error while making request %s %s %s", entry.FlowName, fileDownloadMetaData.FileName, messagegenerator.ExtractErrorMessageFromErrorObject(err))
+				DATASTACKAgent.Logger.Error("File download error-8 while making request %s %s %s", entry.FlowName, fileDownloadMetaData.FileName, messagegenerator.ExtractErrorMessageFromErrorObject(err))
 				DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.DOWNLOADERROR, metadatagenerator.GenerateFileDownloadErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileDownloadMetaData.RemoteTxnID, fileDownloadMetaData.DataStackTxnID), time.Now(), "OUT", false)
 				break
 			} else if response.StatusCode == 200 {
@@ -1716,21 +1720,21 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 				response = nil
 				if err != nil {
 					downloadFileError = err
-					DATASTACKAgent.Logger.Error("file download error while reading response body %s %s %s", entry.FlowName, fileDownloadMetaData.FileName, messagegenerator.ExtractErrorMessageFromErrorObject(err))
+					DATASTACKAgent.Logger.Error("File download error-9 while reading response body %s %s %s", entry.FlowName, fileDownloadMetaData.FileName, messagegenerator.ExtractErrorMessageFromErrorObject(err))
 					break
 				}
-				DATASTACKAgent.Logger.Trace("encryptedChunk - ", encryptedChunk)
-				DATASTACKAgent.Logger.Trace("encryptedChunk string - ", string(encryptedChunk))
+				DATASTACKAgent.Logger.Trace("EncryptedChunk - ", encryptedChunk)
+				DATASTACKAgent.Logger.Trace("EncryptedChunk string - ", string(encryptedChunk))
 				decodedBuffer, err := base64.StdEncoding.DecodeString(string(encryptedChunk))
 				if err != nil {
-					DATASTACKAgent.Logger.Error("decoding error = ", err)
+					DATASTACKAgent.Logger.Error("Decoding error = ", err)
 					break
 				}
-				DATASTACKAgent.Logger.Trace("decoded buffer - ", decodedBuffer)
-				DATASTACKAgent.Logger.Trace("decoded buffer string - ", string(decodedBuffer))
+				DATASTACKAgent.Logger.Trace("Decoded buffer - ", decodedBuffer)
+				DATASTACKAgent.Logger.Trace("Decoded buffer string - ", string(decodedBuffer))
 
 				chunkChecksum := DATASTACKAgent.Utils.CalculateMD5ChecksumForByteSlice(encryptedChunk)
-				DATASTACKAgent.Logger.Trace("chunkChecksum - ", chunkChecksum)
+				DATASTACKAgent.Logger.Trace("ChunkChecksum - ", chunkChecksum)
 				if checksumsToVerify[currentChunk-1] != chunkChecksum {
 					downloadFileError = errors.New("Chunk Checksum match failed for download file - " + fileDownloadMetaData.FileName)
 					DATASTACKAgent.Logger.Error("Checksum match failed for download file - " + fileDownloadMetaData.FileName)
@@ -1742,9 +1746,9 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 					encryptedChunk = nil
 				} else {
 					decryptedData, err := DATASTACKAgent.Utils.DecryptData(decodedBuffer, fileDownloadMetaData.Password)
-					DATASTACKAgent.Logger.Trace("compressedChunk - ", decryptedData)
+					DATASTACKAgent.Logger.Trace("CompressedChunk - ", decryptedData)
 					dataToWriteInFile = DATASTACKAgent.Utils.Decompress(decryptedData)
-					DATASTACKAgent.Logger.Trace("dataToWriteInFile - ", dataToWriteInFile)
+					DATASTACKAgent.Logger.Trace("DataToWriteInFile - ", dataToWriteInFile)
 					if err != nil {
 						downloadFileError = err
 						DATASTACKAgent.Logger.Error("Decrypting chunk error -: ", err)
@@ -1829,7 +1833,7 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 	blockOpener <- true
 }
 
-//RemoveFiles -: deleting list of files
+// RemoveFiles -: deleting list of files
 func RemoveFiles(files []*os.File) {
 	for i := 0; i < len(files); i++ {
 		if files[i] != nil {
@@ -1838,11 +1842,114 @@ func RemoveFiles(files []*os.File) {
 	}
 }
 
-//CloseFiles - closing files
+// CloseFiles - closing files
 func CloseFiles(files []*os.File) {
 	for i := 0; i < len(files); i++ {
 		if files[i] != nil {
 			files[i].Close()
 		}
 	}
+}
+
+func (DATASTACKAgent *AgentDetails) handleFileProcessedSuccessRequest(entry models.TransferLedgerEntry) {
+	DATASTACKAgent.Logger.Info("Handling File Processing Success Request - %s", entry.FlowName)
+	DATASTACKAgent.Logger.Debug("Entry details %v", entry)
+	fileUploadMetaData := models.FileUploadMetaData{}
+	err := json.Unmarshal([]byte(entry.MetaData), &fileUploadMetaData)
+	if err != nil {
+		DATASTACKAgent.Logger.Error("Handling file process success error-1 %s", messagegenerator.ExtractErrorMessageFromErrorObject(err))
+		DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.POSTPROCESSSUCCESSERROR, metadatagenerator.GeneratePostProcessSuccessErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileUploadMetaData.RemoteTxnID, fileUploadMetaData.DataStackTxnID), time.Now(), "OUT", false)
+		return
+	}
+
+	flowFolder := DATASTACKAgent.AppFolderPath + string(os.PathSeparator) + strings.Replace(entry.FlowName, " ", "_", -1)
+	doneFolder := flowFolder + string(os.PathSeparator) + "done"
+	fileNewLocation := doneFolder
+	fileNewLocation = returnAbsolutePath(fileNewLocation)
+	if fileUploadMetaData.MirrorPath != "" {
+		fileNewLocation = fileNewLocation + string(os.PathSeparator) + fileUploadMetaData.MirrorPath + string(os.PathSeparator) + fileUploadMetaData.OriginalFileName
+	} else {
+		fileNewLocation = fileNewLocation + string(os.PathSeparator) + string(os.PathSeparator) + fileUploadMetaData.OriginalFileName
+	}
+
+	if DATASTACKAgent.RetainFileOnSuccess {
+		if DATASTACKAgent.EncryptFile {
+			err = os.Rename(fileUploadMetaData.NewLocation, fileNewLocation)
+			if err != nil {
+				DATASTACKAgent.Logger.Error("Handling file process success error-2 %s", messagegenerator.ExtractErrorMessageFromErrorObject(err))
+				DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.POSTPROCESSSUCCESSERROR, metadatagenerator.GeneratePostProcessSuccessErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileUploadMetaData.RemoteTxnID, fileUploadMetaData.DataStackTxnID), time.Now(), "OUT", false)
+				return
+			}
+		} else {
+			err := DATASTACKAgent.Utils.DecryptFileInChunksAndWriteInOutputFile(fileUploadMetaData.NewLocation, fileNewLocation, DATASTACKAgent.EncryptionKey, BytesToSkipWhileDecrypting)
+			if err != nil {
+				DATASTACKAgent.Logger.Error("Handling file process success error-3 %s", messagegenerator.ExtractErrorMessageFromErrorObject(err))
+				DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.POSTPROCESSSUCCESSERROR, metadatagenerator.GeneratePostProcessSuccessErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileUploadMetaData.RemoteTxnID, fileUploadMetaData.DataStackTxnID), time.Now(), "OUT", false)
+				return
+			}
+			os.Remove(fileUploadMetaData.NewLocation)
+		}
+	} else {
+		err = os.Remove(fileUploadMetaData.NewLocation)
+		if err != nil {
+			DATASTACKAgent.Logger.Error("Handling file process success error-4 %s", messagegenerator.ExtractErrorMessageFromErrorObject(err))
+			DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.POSTPROCESSSUCCESSERROR, metadatagenerator.GeneratePostProcessSuccessErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileUploadMetaData.RemoteTxnID, fileUploadMetaData.DataStackTxnID), time.Now(), "OUT", false)
+			return
+		}
+	}
+	DATASTACKAgent.Logger.Info("File process success request completed for %s %s ", entry.FlowName, fileUploadMetaData.OriginalFileName)
+}
+
+func (DATASTACKAgent *AgentDetails) handleFileProcessedFailureRequest(entry models.TransferLedgerEntry) {
+	DATASTACKAgent.Logger.Info("Handling Processing Failure Request - %s", entry.FlowName)
+	DATASTACKAgent.Logger.Debug("Entry details %v ", entry)
+	flowFolder := DATASTACKAgent.AppFolderPath + string(os.PathSeparator) + strings.Replace(entry.FlowName, " ", "_", -1)
+	errorFolder := flowFolder + string(os.PathSeparator) + "error"
+	fileUploadMetaData := models.FileUploadMetaData{}
+	err := json.Unmarshal([]byte(entry.MetaData), &fileUploadMetaData)
+	if err != nil {
+		DATASTACKAgent.Logger.Error("Handling Processing Failure Request error-1 %s ", messagegenerator.ExtractErrorMessageFromErrorObject(err))
+		DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.POSTPROCESSSUCCESSERROR, metadatagenerator.GeneratePostProcessSuccessErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileUploadMetaData.RemoteTxnID, fileUploadMetaData.DataStackTxnID), time.Now(), "OUT", false)
+		return
+	}
+
+	processingFileLocation := fileUploadMetaData.NewLocation
+	var errorFileLocation string
+	if fileUploadMetaData.MirrorPath != "" {
+		errorFileLocation = errorFolder + string(os.PathSeparator) + fileUploadMetaData.MirrorPath + string(os.PathSeparator) + fileUploadMetaData.DataStackTxnID + "_" + fileUploadMetaData.OriginalFileName
+	} else {
+		errorFileLocation = errorFolder + string(os.PathSeparator) + fileUploadMetaData.DataStackTxnID + "_" + fileUploadMetaData.OriginalFileName
+	}
+
+	if DATASTACKAgent.RetainFileOnError {
+		if DATASTACKAgent.EncryptFile {
+			err = os.Rename(processingFileLocation, errorFileLocation)
+			if err != nil {
+				DATASTACKAgent.Logger.Error("Handling Processing Failure Request error-2 %s ", messagegenerator.ExtractErrorMessageFromErrorObject(err))
+				DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.POSTPROCESSFAILUREERROR, metadatagenerator.GeneratePostProcessFailureErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileUploadMetaData.RemoteTxnID, fileUploadMetaData.DataStackTxnID), time.Now(), "OUT", false)
+				return
+			}
+
+		} else {
+			err = DATASTACKAgent.Utils.DecryptFileInChunksAndWriteInOutputFile(processingFileLocation, errorFileLocation, DATASTACKAgent.EncryptionKey, BytesToSkipWhileDecrypting)
+			if err != nil {
+				DATASTACKAgent.Logger.Error("Handling Processing Failure Request error-3 %s ", messagegenerator.ExtractErrorMessageFromErrorObject(err))
+				DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.POSTPROCESSSUCCESSERROR, metadatagenerator.GeneratePostProcessSuccessErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileUploadMetaData.RemoteTxnID, fileUploadMetaData.DataStackTxnID), time.Now(), "OUT", false)
+				return
+			}
+			os.Remove(fileUploadMetaData.NewLocation)
+		}
+
+	} else {
+		err = os.Remove(processingFileLocation)
+		if err != nil {
+			DATASTACKAgent.Logger.Error("Handling Processing Failure Request error-4 %s ", messagegenerator.ExtractErrorMessageFromErrorObject(err))
+			DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.POSTPROCESSFAILUREERROR, metadatagenerator.GeneratePostProcessFailureErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileUploadMetaData.RemoteTxnID, fileUploadMetaData.DataStackTxnID), time.Now(), "OUT", false)
+			return
+		}
+	}
+	errMsgFileName := fileUploadMetaData.DataStackTxnID + "_" + fileUploadMetaData.OriginalFileName + ".Error.txt"
+	errMsgFilePath := errorFolder + string(os.PathSeparator) + errMsgFileName
+	DATASTACKAgent.Utils.CreateFlowErrorFile(errMsgFilePath, fileUploadMetaData.ErrorMessage)
+	DATASTACKAgent.Logger.Info("Handling Processing failure request completed for flow %s ", entry.FlowName)
 }

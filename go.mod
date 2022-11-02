@@ -1,22 +1,26 @@
 module ds-agent
 
-go 1.15
+go 1.17
+
+require (
+	github.com/appveen/go-log v0.0.0-20200117132300-fb120bf9878d
+	github.com/asdine/storm v2.1.2+incompatible
+	github.com/gorilla/mux v1.8.0
+	github.com/howeyc/gopass v0.0.0-20210920133722-c8aef6fb66ef
+	github.com/kardianos/service v1.2.2
+	github.com/robfig/cron v1.2.0
+	github.com/satori/go.uuid v1.2.0
+)
 
 require (
 	github.com/DataDog/zstd v1.5.2 // indirect
 	github.com/Sereal/Sereal v0.0.0-20220903133728-b4d312952c4c // indirect
-	github.com/appveen/go-log v0.0.0-20200117132300-fb120bf9878d
-	github.com/asdine/storm v2.1.2+incompatible
 	github.com/bmizerany/assert v0.0.0-20160611221934-b7ed37b82869 // indirect
 	github.com/davecgh/go-spew v1.1.1 // indirect
 	github.com/golang/protobuf v1.5.2 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/gorilla/mux v1.8.0
-	github.com/howeyc/gopass v0.0.0-20210920133722-c8aef6fb66ef
-	github.com/kardianos/service v1.2.2
 	github.com/kr/pretty v0.1.0 // indirect
-	github.com/robfig/cron v1.2.0
-	github.com/satori/go.uuid v1.2.0
+	github.com/philhofer/fwd v1.1.1 // indirect
 	github.com/stretchr/testify v1.6.1 // indirect
 	github.com/t-k/fluent-logger-golang v1.0.0 // indirect
 	github.com/tinylib/msgp v1.1.6 // indirect

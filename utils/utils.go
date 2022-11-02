@@ -54,6 +54,7 @@ type UtilityService interface {
 	DecryptData(data []byte, passphrase string) ([]byte, error)
 	Get64BitBinaryStringNumber(number int64) string
 	CalculateMD5ChecksumForByteSlice(data []byte) string
+	DecryptFileInChunksAndWriteInOutputFile(inputPath string, outputPath string, password string, bytesToSkip int) error
 }
 
 //ReadCentralConfFile - read agent/edge conf file into map
@@ -517,4 +518,109 @@ func (Utils *UtilsService) CalculateMD5ChecksumForByteSlice(data []byte) string 
 	MD5 := md5.Sum(data)
 	MD5String := fmt.Sprintf("%x", MD5)
 	return MD5String
+}
+
+//DecryptFileInChunksAndWriteInOutputFile - buffered decryption and write it in output file, mainly command line request to agent
+func (Utils *UtilsService) DecryptFileInChunksAndWriteInOutputFile(inputPath string, outputPath string, password string, bytesToSkip int) error {
+	defer func() {
+		if r := recover(); r != nil {
+			fmt.Println("Error occured in encrypting the file error is -: ", r)
+		}
+	}()
+
+	inputFile, err := os.Open(inputPath)
+	if err != nil {
+		return err
+	}
+	outputFile, err := os.Create(outputPath)
+	if err != nil {
+		return err
+	}
+	lengthReadBuffer := make([]byte, bytesToSkip)
+	_, err = inputFile.Read(lengthReadBuffer)
+
+	if err != nil {
+		inputFile.Close()
+		return err
+	}
+	inputFile.Close()
+
+	inputFile, err = os.Open(inputPath)
+	if err != nil {
+		return err
+	}
+
+	if !IsBufferedEncryption(lengthReadBuffer) {
+		previousEncryptedData, err := ioutil.ReadAll(inputFile)
+		if err != nil {
+			return err
+		}
+		decryptedData, err := Utils.DecryptData(previousEncryptedData, password)
+		if err != nil {
+			return err
+		}
+		_, err = outputFile.Write(decryptedData)
+		if err != nil {
+			return err
+		}
+		err = outputFile.Close()
+		if err != nil {
+			return err
+		}
+		err = inputFile.Close()
+		if err != nil {
+			return err
+		}
+		return nil
+	}
+
+	for {
+		_, err := inputFile.Read(lengthReadBuffer)
+		if err != nil {
+			if err != io.EOF {
+				return err
+			}
+			break
+		}
+		encryptedChunkSize, err := strconv.ParseInt(string(lengthReadBuffer), 2, 64)
+		if err != nil {
+			return err
+		}
+		encryptedDataBuffer := make([]byte, int64(encryptedChunkSize))
+		_, err = inputFile.Read(encryptedDataBuffer)
+		if err != nil {
+			return err
+		}
+
+		compressedChunk, err := Utils.DecryptData(encryptedDataBuffer, password)
+		decryptedData := Utils.Decompress(compressedChunk)
+		if err != nil {
+			return err
+		}
+		_, err = outputFile.Write(decryptedData)
+		if err != nil {
+			return err
+		}
+		encryptedDataBuffer = nil
+	}
+	err = outputFile.Close()
+	if err != nil {
+		return err
+	}
+	err = inputFile.Close()
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
+func IsBufferedEncryption(data []byte) bool {
+	if len(data) < 64 {
+		return false
+	}
+	_, err := strconv.ParseInt(string(data), 2, 64)
+	if err != nil {
+		return false
+	}
+	return true
 }
