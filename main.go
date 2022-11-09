@@ -21,6 +21,7 @@ import (
 	"github.com/kardianos/service"
 )
 
+var svcLog service.Logger
 var Logger logger.Logger
 var encrypt = flag.Bool("encrypt", false, "Encryption tool")
 var decrypt = flag.Bool("decrypt", false, "Decryption tool")
@@ -41,11 +42,11 @@ type program struct {
 func (p *program) Start(s service.Service) error {
 	data := Utils.ReadCentralConfFile(*confFilePath)
 	if service.Interactive() {
-		Logger.Info("Running in terminal.")
+		svcLog.Info("Running in terminal.")
 		p := verifyAgentPassword(*password)
 		startAgent(*confFilePath, data, p, true)
 	} else {
-		Logger.Info("Running under service manager.")
+		svcLog.Info("Running under service manager.")
 		p := verifyAgentPassword(*password)
 		startAgent(*confFilePath, data, p, false)
 	}
@@ -64,14 +65,6 @@ func (p *program) Stop(s service.Service) error {
 
 func main() {
 	confData := Utils.ReadCentralConfFile(*confFilePath)
-	logClient := Utils.GetNewHTTPClient(nil)
-	logsHookURL := "https://" + confData["base-url"] + "/logs"
-	headers := map[string]string{}
-	headers["DATA-STACK-Agent-Id"] = confData["agent-id"]
-	headers["DATA-STACK-Agent-Name"] = confData["agent-name"]
-	LoggerService := log.Logger{}
-	Logger = LoggerService.GetLogger(confData["log-level"], confData["agent-name"], confData["agent-id"], "", "", "days", logsHookURL, logClient, headers)
-
 	isInternalAgent = "false"
 	flag.Parse()
 	if *encrypt {
@@ -139,6 +132,10 @@ func main() {
 	}
 
 	errs := make(chan error, 5)
+	svcLog, err = s.Logger(errs)
+	if err != nil {
+		Logger.Fatal(err)
+	}
 	go func() {
 		for {
 			err := <-errs
@@ -195,9 +192,16 @@ func verifyAgentPassword(password string) string {
 		Logger.Error(err)
 	}
 
+	logClient := Utils.GetNewHTTPClient(nil)
+	logsHookURL := "https://" + confData["base-url"] + "/b2b/bm/{App}/agent/utils/logs"
+	headers := map[string]string{}
+	headers["DATA-STACK-Agent-Id"] = confData["agent-id"]
+	headers["DATA-STACK-Agent-Name"] = confData["agent-name"]
+	LoggerService := log.Logger{}
+
 	URL := "https://{BaseURL}/b2b/bm/auth/login"
 	URL = strings.Replace(URL, "{BaseURL}", confData["base-url"], -1)
-	Logger.Info("Connecting to integration manager - " + URL)
+	svcLog.Info("Connecting to integration manager - " + URL)
 	client := Utils.GetNewHTTPClient(nil)
 	req, err := http.NewRequest("POST", URL, bytes.NewReader(data))
 	if err != nil {
@@ -247,6 +251,10 @@ func verifyAgentPassword(password string) string {
 			Logger.Error("Error unmarshalling agent data from IM - " + err.Error())
 			os.Exit(0)
 		}
+		headers["Authorization"] = "JWT " + AgentDataFromIM.Token
+		logsHookURL = strings.Replace(logsHookURL, "{App}", AgentDataFromIM.AppName, -1)
+		Logger = LoggerService.GetLogger(confData["log-level"], confData["agent-name"], confData["agent-id"], "", "", "days", logsHookURL, logClient, headers)
+
 		Logger.Info("Agent Successfuly Logged In")
 		Logger.Debug("Agent details fetched -  %v ", AgentDataFromIM)
 	}

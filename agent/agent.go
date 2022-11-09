@@ -301,16 +301,16 @@ func (DATASTACKAgent *AgentDetails) getRunningOrPendingFlowsFromB2BManager() {
 		os.Exit(0)
 	}
 
-	DATASTACKAgent.Logger.Info("%v flows fetched ", len(data.TransferLedgerEntries))
+	DATASTACKAgent.Logger.Info("%v flows fetched", len(data.TransferLedgerEntries))
 	for _, entry := range data.TransferLedgerEntries {
-		DATASTACKAgent.Logger.Trace("Action - ", entry.Action)
+		DATASTACKAgent.Logger.Trace("Action - %v", entry.Action)
 		switch entry.Action {
 		case ledgers.FLOWCREATEREQUEST:
 			DATASTACKAgent.handleFlowCreateStartOrUpdateRequest(entry)
-			return
+			break
 		case ledgers.FLOWSTARTREQUEST:
 			DATASTACKAgent.handleFlowCreateStartOrUpdateRequest(entry)
-			return
+			break
 		}
 	}
 }

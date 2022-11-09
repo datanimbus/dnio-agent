@@ -29,10 +29,10 @@ import (
 	"time"
 )
 
-//UtilsService - struct
+// UtilsService - struct
 type UtilsService struct{}
 
-//UtilityService - task of utils package
+// UtilityService - task of utils package
 type UtilityService interface {
 	GetLocalIP() string
 	GetMacAddr() ([]string, error)
@@ -57,7 +57,7 @@ type UtilityService interface {
 	DecryptFileInChunksAndWriteInOutputFile(inputPath string, outputPath string, password string, bytesToSkip int) error
 }
 
-//ReadCentralConfFile - read agent/edge conf file into map
+// ReadCentralConfFile - read agent/edge conf file into map
 func (Utils *UtilsService) ReadCentralConfFile(filePath string) map[string]string {
 	data, err := Utils.ReadLinesToFile(filePath)
 	if err != nil {
@@ -75,7 +75,7 @@ func (Utils *UtilsService) ReadCentralConfFile(filePath string) map[string]strin
 	return mappedValues
 }
 
-//ReadLinesToFile - Read lines from a file in string slice
+// ReadLinesToFile - Read lines from a file in string slice
 func (Utils *UtilsService) ReadLinesToFile(path string) ([]string, error) {
 	file, err := os.Open(path)
 	if err != nil {
@@ -91,7 +91,7 @@ func (Utils *UtilsService) ReadLinesToFile(path string) ([]string, error) {
 	return lines, scanner.Err()
 }
 
-//GetExecutablePathAndName - get executable path and name
+// GetExecutablePathAndName - get executable path and name
 func GetExecutablePathAndName() (string, string, error) {
 	executablePath, err := os.Executable()
 	if err != nil {
@@ -101,7 +101,7 @@ func GetExecutablePathAndName() (string, string, error) {
 	return d, f, nil
 }
 
-//GetMacAddr - get list of mac addresses
+// GetMacAddr - get list of mac addresses
 func (Utils *UtilsService) GetMacAddr() ([]string, error) {
 	ifas, err := net.Interfaces()
 	if err != nil {
@@ -117,7 +117,7 @@ func (Utils *UtilsService) GetMacAddr() ([]string, error) {
 	return as, nil
 }
 
-//GetLocalIP - get local ip address of machine
+// GetLocalIP - get local ip address of machine
 func (Utils *UtilsService) GetLocalIP() string {
 	addrs, err := net.InterfaceAddrs()
 	if err != nil {
@@ -134,7 +134,7 @@ func (Utils *UtilsService) GetLocalIP() string {
 	return ""
 }
 
-//GetNewHTTPClient - get new http client with/without TLS
+// GetNewHTTPClient - get new http client with/without TLS
 func (Utils *UtilsService) GetNewHTTPClient(transport *http.Transport) *http.Client {
 	if transport != nil {
 		return &http.Client{Transport: transport}
@@ -145,7 +145,7 @@ func (Utils *UtilsService) GetNewHTTPClient(transport *http.Transport) *http.Cli
 	return &http.Client{Transport: tr}
 }
 
-//MakeJSONRequest - utility function to make JSON request
+// MakeJSONRequest - utility function to make JSON request
 func (Utils *UtilsService) MakeJSONRequest(client *http.Client, url string, payload interface{}, headers map[string]string, response interface{}) error {
 	data, err := json.Marshal(payload)
 	if err != nil {
@@ -205,18 +205,18 @@ func (Utils *UtilsService) CheckFolderExistsOrCreateFolder(folder string) error 
 	return nil
 }
 
-//StartHTTPServer - start the servers
+// StartHTTPServer - start the servers
 func (Utils *UtilsService) StartHTTPServer(server *http.Server) error {
 	err := server.ListenAndServe()
 	return err
 }
 
-//ReadAll - for reading request or response body
+// ReadAll - for reading request or response body
 func (Utils *UtilsService) ReadAll(r io.Reader) ([]byte, error) {
 	return ioutil.ReadAll(r)
 }
 
-//CreateOrUpdateFlowConfFile - function to create flow configuration file
+// CreateOrUpdateFlowConfFile - function to create flow configuration file
 func (Utils *UtilsService) CreateOrUpdateFlowConfFile(filePath string, flow *models.FlowDefinitionResponse, running bool, DeploymentName string) error {
 	data := []string{}
 	data = append(data, "flow-name="+flow.FlowName)
@@ -236,7 +236,7 @@ func (Utils *UtilsService) CreateOrUpdateFlowConfFile(filePath string, flow *mod
 	return nil
 }
 
-//WriteLinesToFile - write lines to a file from string slice
+// WriteLinesToFile - write lines to a file from string slice
 func (Utils *UtilsService) WriteLinesToFile(lines []string, path string) error {
 	file, err := os.Create(path)
 	file.Truncate(0)
@@ -271,7 +271,7 @@ func (Utils *UtilsService) ReadFlowConfigurationFile(filePath string) (map[strin
 	return values, nil
 }
 
-//CheckFileRegexAndExtension - matching file regex and extension for file upload
+// CheckFileRegexAndExtension - matching file regex and extension for file upload
 func (Utils *UtilsService) CheckFileRegexAndExtension(fileName string, fileExtensions []models.FileExtensionStruct, fileNameRegexs []string) bool {
 	matched := false
 	matched1 := false
@@ -310,7 +310,7 @@ func (Utils *UtilsService) CheckFileRegexAndExtension(fileName string, fileExten
 	return matched
 }
 
-//CreateFlowErrorFile - function to create error file
+// CreateFlowErrorFile - function to create error file
 func (Utils *UtilsService) CreateFlowErrorFile(filePath string, errorMsg string) error {
 	data := []string{}
 	if !strings.Contains(errorMsg, "Error-:") {
@@ -323,7 +323,7 @@ func (Utils *UtilsService) CreateFlowErrorFile(filePath string, errorMsg string)
 	return nil
 }
 
-//GetFileDetails function for fetching details of file
+// GetFileDetails function for fetching details of file
 func (Utils *UtilsService) GetFileDetails(filePath string, AppFolder string, FlowName string, fileExtensions []models.FileExtensionStruct, fileNameRegexs []string) (flowName string, originalFileName string, originalAbsoluteFilePath string, newFileName string, newLocation string, md5CheckSum string, err error) {
 	items := strings.Split(filePath, string(os.PathSeparator))
 	originalFileName = items[len(items)-1]
@@ -386,7 +386,7 @@ func (Utils *UtilsService) GetFileDetails(filePath string, AppFolder string, Flo
 	return flowName, originalFileName, originalAbsoluteFilePath, newFileName, newLocation, md5CheckSum, nil
 }
 
-//ValidateFileSize - validate file size
+// ValidateFileSize - validate file size
 func ValidateFileSize(filepath string, maxFileSize int) (int64, bool, error) {
 	previousTime := time.Now()
 	for {
@@ -434,7 +434,7 @@ func (Utils *UtilsService) CalculateMD5ChecksumForFile(filePath string) (string,
 	return returnMD5String, nil
 }
 
-//Compress - compressing file chunk
+// Compress - compressing file chunk
 func (Utils *UtilsService) Compress(data []byte) []byte {
 	var b bytes.Buffer
 	w := zlib.NewWriter(&b)
@@ -444,7 +444,7 @@ func (Utils *UtilsService) Compress(data []byte) []byte {
 	return []byte(base64.StdEncoding.EncodeToString(compressedData))
 }
 
-//Decompress - decompressing file chunk
+// Decompress - decompressing file chunk
 func (Utils *UtilsService) Decompress(data []byte) []byte {
 	b := bytes.NewBuffer(data)
 	r, _ := zlib.NewReader(b)
@@ -459,7 +459,7 @@ func createHash(key string) string {
 	return hex.EncodeToString(hasher.Sum(nil)[:16])
 }
 
-//EncryptData - used for encryption of data
+// EncryptData - used for encryption of data
 func (Utils *UtilsService) EncryptData(data []byte, passphrase string) ([]byte, error) {
 	block, _ := aes.NewCipher([]byte(createHash(passphrase)))
 	gcm, err := cipher.NewGCM(block)
@@ -474,7 +474,7 @@ func (Utils *UtilsService) EncryptData(data []byte, passphrase string) ([]byte, 
 	return []byte(base64.StdEncoding.EncodeToString(ciphertext)), nil
 }
 
-//DecryptData - used for decryption of data
+// DecryptData - used for decryption of data
 func (Utils *UtilsService) DecryptData(data []byte, passphrase string) ([]byte, error) {
 	key := []byte(createHash(passphrase))
 	block, err := aes.NewCipher(key)
@@ -499,7 +499,7 @@ func (Utils *UtilsService) DecryptData(data []byte, passphrase string) ([]byte, 
 	return decodedData, nil
 }
 
-//Get64BitBinaryStringNumber - convert a int64 number to 64 bit string
+// Get64BitBinaryStringNumber - convert a int64 number to 64 bit string
 func (Utils *UtilsService) Get64BitBinaryStringNumber(number int64) string {
 
 	binarySize := strconv.FormatInt(number, 2)
@@ -513,21 +513,15 @@ func (Utils *UtilsService) Get64BitBinaryStringNumber(number int64) string {
 	return binarySize
 }
 
-//CalculateMD5ChecksumForByteSlice - calculate MD5 checksum for byte slice
+// CalculateMD5ChecksumForByteSlice - calculate MD5 checksum for byte slice
 func (Utils *UtilsService) CalculateMD5ChecksumForByteSlice(data []byte) string {
 	MD5 := md5.Sum(data)
 	MD5String := fmt.Sprintf("%x", MD5)
 	return MD5String
 }
 
-//DecryptFileInChunksAndWriteInOutputFile - buffered decryption and write it in output file, mainly command line request to agent
+// DecryptFileInChunksAndWriteInOutputFile - buffered decryption and write it in output file, mainly command line request to agent
 func (Utils *UtilsService) DecryptFileInChunksAndWriteInOutputFile(inputPath string, outputPath string, password string, bytesToSkip int) error {
-	defer func() {
-		if r := recover(); r != nil {
-			fmt.Println("Error occured in encrypting the file error is -: ", r)
-		}
-	}()
-
 	inputFile, err := os.Open(inputPath)
 	if err != nil {
 		return err
