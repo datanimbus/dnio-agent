@@ -535,7 +535,17 @@ func (Utils *UtilsService) DecryptFileInChunksAndWriteInOutputFile(inputPath str
 	if err != nil {
 		return err
 	}
-	compressedChunk, err := Utils.DecryptData(previousEncryptedData, password)
+
+	decoded, err := base64.StdEncoding.DecodeString(string(previousEncryptedData))
+	if err != nil {
+		return err
+	}
+
+	compressedChunk, err := Utils.DecryptData(decoded, password)
+	if err != nil {
+		return err
+	}
+
 	decryptedData := Utils.Decompress(compressedChunk)
 	if err != nil {
 		return err

@@ -1215,7 +1215,6 @@ func (DATASTACKAgent *AgentDetails) handleUploadFileRequest(entry models.Transfe
 // SendFileInChunksToBM - sending file in chunks chunks
 func (DATASTACKAgent *AgentDetails) SendFileInChunksToBM(entry models.TransferLedgerEntry, fileUploadMetaData models.FileUploadMetaData, encryptionDone bool, totalFileSize int64, encryptedChecksum string, decryptedChecksum string, totalChunks int, retryCounter int, totalRetriesDone int, flowFolder string, errorFolder string, password string) error {
 	var buffer []byte
-	var binSize string
 	var uploadError error
 	var decryptedBuffer []byte
 	var chunkSize int64
@@ -1291,8 +1290,6 @@ func (DATASTACKAgent *AgentDetails) SendFileInChunksToBM(entry models.TransferLe
 					return err
 				}
 
-				binSize = DATASTACKAgent.Utils.Get64BitBinaryStringNumber(int64(len(buffer)))
-				processingFile.Write([]byte(binSize))
 				processingFile.Write(buffer)
 				totalFileSize -= bufferSize
 				decryptedBuffer = nil
