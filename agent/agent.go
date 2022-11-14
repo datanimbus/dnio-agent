@@ -181,12 +181,6 @@ func SetUpAgent(centralFolder string, DATASTACKAgent *AgentDetails, pass string,
 		DATASTACKAgent.BaseURL = "https://" + DATASTACKAgent.BaseURL
 	}
 
-	headers := map[string]string{}
-	headers["DATA-STACK-App-Name"] = DATASTACKAgent.AppName
-	headers["DATA-STACK-Agent-Id"] = DATASTACKAgent.AgentID
-	headers["DATA-STACK-Agent-Name"] = DATASTACKAgent.AgentName
-	headers["DATA-STACK-Mac-Address"] = DATASTACKAgent.MACAddress
-	headers["DATA-STACK-Ip-Address"] = DATASTACKAgent.IPAddress
 	DATASTACKAgent.Logger = logger
 	DATASTACKAgent.IPAddress = DATASTACKAgent.Utils.GetLocalIP()
 	list, err := DATASTACKAgent.Utils.GetMacAddr()
@@ -392,13 +386,6 @@ func (DATASTACKAgent *AgentDetails) initCentralHeartBeat(wg *sync.WaitGroup) {
 						DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.HEARTBEATERROR, metadatagenerator.GenerateErrorMessageMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err)), time.Now(), "OUT", false)
 						continue
 					}
-				}
-			}
-			for _, entry := range data.TransferLedgerEntries {
-				err = DATASTACKAgent.TransferLedger.UpdateSentOrReadFieldOfEntry(&entry, true)
-				if err != nil {
-					DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.HEARTBEATERROR, metadatagenerator.GenerateErrorMessageMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err)), time.Now(), "OUT", false)
-					continue
 				}
 			}
 
@@ -1535,6 +1522,8 @@ func (DATASTACKAgent *AgentDetails) processQueuedDownloads() {
 }
 
 func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.TransferLedgerEntry, blockOpener chan bool) {
+	DATASTACKAgent.Logger.Info("Started file download for Flow-: %v, FlowId-: %v", entry.FlowName, entry.FlowID)
+	DATASTACKAgent.Logger.Debug("Entry details %s", entry.MetaData)
 
 	fileDownloadMetaData := models.DownloadFileRequestMetaData{}
 	err := json.Unmarshal([]byte(entry.MetaData), &fileDownloadMetaData)
@@ -1549,8 +1538,6 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 		blockOpener <- true
 		return
 	}
-	DATASTACKAgent.Logger.Info("Started file download for Flow-: %v, FlowId-: %v", entry.FlowName, entry.FlowID)
-	DATASTACKAgent.Logger.Debug("Entry details %s", entry.MetaData)
 
 	var files []*os.File
 	mirrorOutputPath := fileDownloadMetaData.MirrorDirectory
@@ -1733,22 +1720,20 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 				DATASTACKAgent.Logger.Trace("Decoded buffer - ", decodedBuffer)
 				DATASTACKAgent.Logger.Trace("Decoded buffer string - ", string(decodedBuffer))
 
-				chunkChecksum := DATASTACKAgent.Utils.CalculateMD5ChecksumForByteSlice(encryptedChunk)
-				DATASTACKAgent.Logger.Trace("ChunkChecksum - ", chunkChecksum)
-				if checksumsToVerify[currentChunk-1] != chunkChecksum {
-					downloadFileError = errors.New("Chunk Checksum match failed for download file - " + fileDownloadMetaData.FileName)
-					DATASTACKAgent.Logger.Error("Checksum match failed for download file - " + fileDownloadMetaData.FileName)
-					encryptedChunk = nil
-					DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.DOWNLOADERROR, metadatagenerator.GenerateErrorMessageMetaData("Checksum match failed for downloaded file - "+fileDownloadMetaData.FileName), time.Now(), "OUT", false)
-					break
-				} else if DATASTACKAgent.EncryptFile {
+				// chunkChecksum := DATASTACKAgent.Utils.CalculateMD5ChecksumForByteSlice(encryptedChunk)
+				// DATASTACKAgent.Logger.Trace("ChunkChecksum - ", chunkChecksum)
+				// if checksumsToVerify[currentChunk-1] != chunkChecksum {
+				// 	downloadFileError = errors.New("Chunk Checksum match failed for download file - " + fileDownloadMetaData.FileName)
+				// 	DATASTACKAgent.Logger.Error("Checksum match failed for download file - " + fileDownloadMetaData.FileName)
+				// 	encryptedChunk = nil
+				// 	DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.DOWNLOADERROR, metadatagenerator.GenerateErrorMessageMetaData("Checksum match failed for downloaded file - "+fileDownloadMetaData.FileName), time.Now(), "OUT", false)
+				// 	break
+				// } else
+				if DATASTACKAgent.EncryptFile {
 					dataToWriteInFile = encryptedChunk
 					encryptedChunk = nil
 				} else {
 					decryptedData, err := DATASTACKAgent.Utils.DecryptData(decodedBuffer, fileDownloadMetaData.Password)
-					DATASTACKAgent.Logger.Trace("CompressedChunk - ", decryptedData)
-					dataToWriteInFile = DATASTACKAgent.Utils.Decompress(decryptedData)
-					DATASTACKAgent.Logger.Trace("DataToWriteInFile - ", dataToWriteInFile)
 					if err != nil {
 						downloadFileError = err
 						DATASTACKAgent.Logger.Error("Decrypting chunk error -: ", err)
@@ -1756,6 +1741,9 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 						decryptedData = nil
 						break
 					}
+					DATASTACKAgent.Logger.Trace("CompressedChunk - ", decryptedData)
+					dataToWriteInFile = DATASTACKAgent.Utils.Decompress(decryptedData)
+					DATASTACKAgent.Logger.Trace("DataToWriteInFile - ", dataToWriteInFile)
 					decryptedData = nil
 				}
 

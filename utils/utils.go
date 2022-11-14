@@ -530,72 +530,19 @@ func (Utils *UtilsService) DecryptFileInChunksAndWriteInOutputFile(inputPath str
 	if err != nil {
 		return err
 	}
-	lengthReadBuffer := make([]byte, bytesToSkip)
-	_, err = inputFile.Read(lengthReadBuffer)
 
-	if err != nil {
-		inputFile.Close()
-		return err
-	}
-	inputFile.Close()
-
-	inputFile, err = os.Open(inputPath)
+	previousEncryptedData, err := ioutil.ReadAll(inputFile)
 	if err != nil {
 		return err
 	}
-
-	if !IsBufferedEncryption(lengthReadBuffer) {
-		previousEncryptedData, err := ioutil.ReadAll(inputFile)
-		if err != nil {
-			return err
-		}
-		decryptedData, err := Utils.DecryptData(previousEncryptedData, password)
-		if err != nil {
-			return err
-		}
-		_, err = outputFile.Write(decryptedData)
-		if err != nil {
-			return err
-		}
-		err = outputFile.Close()
-		if err != nil {
-			return err
-		}
-		err = inputFile.Close()
-		if err != nil {
-			return err
-		}
-		return nil
+	compressedChunk, err := Utils.DecryptData(previousEncryptedData, password)
+	decryptedData := Utils.Decompress(compressedChunk)
+	if err != nil {
+		return err
 	}
-
-	for {
-		_, err := inputFile.Read(lengthReadBuffer)
-		if err != nil {
-			if err != io.EOF {
-				return err
-			}
-			break
-		}
-		encryptedChunkSize, err := strconv.ParseInt(string(lengthReadBuffer), 2, 64)
-		if err != nil {
-			return err
-		}
-		encryptedDataBuffer := make([]byte, int64(encryptedChunkSize))
-		_, err = inputFile.Read(encryptedDataBuffer)
-		if err != nil {
-			return err
-		}
-
-		compressedChunk, err := Utils.DecryptData(encryptedDataBuffer, password)
-		decryptedData := Utils.Decompress(compressedChunk)
-		if err != nil {
-			return err
-		}
-		_, err = outputFile.Write(decryptedData)
-		if err != nil {
-			return err
-		}
-		encryptedDataBuffer = nil
+	_, err = outputFile.Write(decryptedData)
+	if err != nil {
+		return err
 	}
 	err = outputFile.Close()
 	if err != nil {

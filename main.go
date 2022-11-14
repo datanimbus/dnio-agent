@@ -195,8 +195,6 @@ func verifyAgentPassword(password string) string {
 	logClient := Utils.GetNewHTTPClient(nil)
 	logsHookURL := "https://" + confData["base-url"] + "/b2b/bm/{App}/agent/utils/logs"
 	headers := map[string]string{}
-	headers["DATA-STACK-Agent-Id"] = confData["agent-id"]
-	headers["DATA-STACK-Agent-Name"] = confData["agent-name"]
 	LoggerService := log.Logger{}
 
 	URL := "https://{BaseURL}/b2b/bm/auth/login"
@@ -251,6 +249,20 @@ func verifyAgentPassword(password string) string {
 			Logger.Error("Error unmarshalling agent data from IM - " + err.Error())
 			os.Exit(0)
 		}
+
+		ipAddress := Utils.GetLocalIP()
+		list, err := Utils.GetMacAddr()
+		if err != nil {
+			Logger.Error(fmt.Sprintf("Mac Address fetching error -: %s", err))
+			os.Exit(0)
+		}
+		macAddress := list[0]
+
+		headers["DATA-STACK-Agent-Id"] = confData["agent-id"]
+		headers["DATA-STACK-Agent-Name"] = confData["agent-name"]
+		headers["DATA-STACK-App-Name"] = AgentDataFromIM.AppName
+		headers["DATA-STACK-Mac-Address"] = macAddress
+		headers["DATA-STACK-Ip-Address"] = ipAddress
 		headers["Authorization"] = "JWT " + AgentDataFromIM.Token
 		logsHookURL = strings.Replace(logsHookURL, "{App}", AgentDataFromIM.AppName, -1)
 		Logger = LoggerService.GetLogger(confData["log-level"], confData["agent-name"], confData["agent-id"], "", "", "days", logsHookURL, logClient, headers)

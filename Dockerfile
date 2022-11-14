@@ -14,17 +14,10 @@ WORKDIR /app
 RUN go get -u github.com/gorilla/mux
 RUN go get -u github.com/asdine/storm
 RUN go get -u github.com/satori/go.uuid
-RUN go get -u github.com/howeyc/fsnotify
 RUN go get -u github.com/howeyc/gopass
-RUN go get -u go.mongodb.org/mongo-driver/bson
-RUN go get -u go.mongodb.org/mongo-driver/mongo
 RUN go get -u github.com/appveen/go-log/log
 RUN go get -u github.com/kardianos/service
-RUN go get -u github.com/nats-io/go-nats-streaming
-RUN go get -u github.com/nats-io/go-nats
 RUN go get -u github.com/robfig/cron
-RUN go get -u github.com/iancoleman/strcase
-RUN go get -u golang.org/x/time/rate
 
 COPY . .
 
