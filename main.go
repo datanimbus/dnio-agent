@@ -268,7 +268,7 @@ func verifyAgentPassword(password string) string {
 		Logger = LoggerService.GetLogger(confData["log-level"], confData["agent-name"], confData["agent-id"], "", "", "days", logsHookURL, logClient, headers)
 
 		Logger.Info("Agent Successfuly Logged In")
-		Logger.Debug("Agent details fetched -  %v ", AgentDataFromIM)
+		Logger.Trace("Agent details fetched -  %v ", AgentDataFromIM)
 	}
 	return string(pass)
 }
