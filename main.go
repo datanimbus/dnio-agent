@@ -189,7 +189,7 @@ func verifyAgentPassword(password string) string {
 	data, err := json.Marshal(payload)
 	if err != nil {
 		data = nil
-		Logger.Error(err)
+		svcLog.Error(err)
 	}
 
 	logClient := Utils.GetNewHTTPClient(nil)
@@ -199,12 +199,12 @@ func verifyAgentPassword(password string) string {
 
 	URL := "https://{BaseURL}/b2b/bm/auth/login"
 	URL = strings.Replace(URL, "{BaseURL}", confData["base-url"], -1)
-	svcLog.Info("Connecting to integration manager - " + URL)
+	svcLog.Info("Connecting to Integration Manager - " + URL)
 	client := Utils.GetNewHTTPClient(nil)
 	req, err := http.NewRequest("POST", URL, bytes.NewReader(data))
 	if err != nil {
 		data = nil
-		Logger.Error("Error from Integration Manager - " + err.Error())
+		svcLog.Error("Error from Integration Manager - " + err.Error())
 		os.Exit(0)
 	}
 	req.Header.Set("Content-Type", "application/json")
@@ -212,7 +212,7 @@ func verifyAgentPassword(password string) string {
 	res, err := client.Do(req)
 	if err != nil {
 		data = nil
-		Logger.Error("Error from Integration Manager - " + err.Error())
+		svcLog.Error("Error from Integration Manager - " + err.Error())
 		os.Exit(0)
 	}
 	if res.StatusCode != 200 {
@@ -222,13 +222,13 @@ func verifyAgentPassword(password string) string {
 			err = json.Unmarshal(responseData, &BMResponse)
 			if err != nil {
 				responseData = nil
-				Logger.Error("Error unmarshalling response from IM - " + err.Error())
+				svcLog.Error("Error unmarshalling response from IM - " + err.Error())
 				os.Exit(0)
 			}
-			Logger.Error("Error from Integration Manager - " + BMResponse.Message)
+			svcLog.Error("Error from Integration Manager - " + BMResponse.Message)
 			os.Exit(0)
 		} else {
-			Logger.Error("Error from Integration Manager - " + http.StatusText(res.StatusCode))
+			svcLog.Error("Error from Integration Manager - " + http.StatusText(res.StatusCode))
 			os.Exit(0)
 		}
 	} else {
@@ -236,7 +236,7 @@ func verifyAgentPassword(password string) string {
 		if err != nil {
 			data = nil
 			bytesData = nil
-			Logger.Error("Error reading response body from IM - " + err.Error())
+			svcLog.Error("Error reading response body from IM - " + err.Error())
 			os.Exit(0)
 		}
 		if res.Body != nil {
@@ -246,14 +246,14 @@ func verifyAgentPassword(password string) string {
 		if err != nil {
 			data = nil
 			bytesData = nil
-			Logger.Error("Error unmarshalling agent data from IM - " + err.Error())
+			svcLog.Error("Error unmarshalling agent data from IM - " + err.Error())
 			os.Exit(0)
 		}
 
 		ipAddress := Utils.GetLocalIP()
 		list, err := Utils.GetMacAddr()
 		if err != nil {
-			Logger.Error(fmt.Sprintf("Mac Address fetching error -: %s", err))
+			svcLog.Error(fmt.Sprintf("Mac Address fetching error -: %s", err))
 			os.Exit(0)
 		}
 		macAddress := list[0]
