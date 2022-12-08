@@ -444,21 +444,21 @@ func (DATASTACKAgent *AgentDetails) handleFlowCreateStartOrUpdateRequest(entry m
 	switch entry.Action {
 	case ledgers.FLOWCREATEREQUEST:
 		DATASTACKAgent.Logger.Info("Handling Flow Creation Request %s", entry.FlowName)
-		DATASTACKAgent.Logger.Debug("Entry details -: %v", entry)
+		DATASTACKAgent.logStructs(entry)
 		if DATASTACKAgent.Flows[entry.AppName] != nil && DATASTACKAgent.Flows[entry.AppName][entry.FlowID] != nil {
 			DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.FLOWALREADYSTARTED, metadatagenerator.GenerateErrorMessageMetaData(messagegenerator.FlowAlreadyRunningError), time.Now(), "OUT", false)
 			return
 		}
 	case ledgers.FLOWSTARTREQUEST:
 		DATASTACKAgent.Logger.Info("Handling Flow Start Request %s", entry.FlowName)
-		DATASTACKAgent.Logger.Debug("Entry details -: %v", entry)
+		DATASTACKAgent.logStructs(entry)
 		if DATASTACKAgent.Flows[entry.AppName] != nil && DATASTACKAgent.Flows[entry.AppName][entry.FlowID] != nil {
 			DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.FLOWALREADYSTARTED, metadatagenerator.GenerateErrorMessageMetaData(messagegenerator.FlowAlreadyRunningError), time.Now(), "OUT", false)
 			return
 		}
 	case ledgers.FLOWUPDATEREQUEST:
 		DATASTACKAgent.Logger.Debug("Handling Flow Update Request - %s", entry.FlowName)
-		DATASTACKAgent.Logger.Debug("Entry details -: %v", entry)
+		DATASTACKAgent.logStructs(entry)
 		DATASTACKAgent.handleFlowStopRequest(entry)
 	}
 
@@ -607,7 +607,7 @@ func (DATASTACKAgent *AgentDetails) handleFlowCreateStartOrUpdateRequest(entry m
 
 func (DATASTACKAgent *AgentDetails) handleFlowStopRequest(entry models.TransferLedgerEntry) {
 	DATASTACKAgent.Logger.Info("Handling Flow Stop Request %s", entry.FlowName)
-	DATASTACKAgent.Logger.Debug("Entry details -: %v", entry)
+	DATASTACKAgent.logStructs(entry)
 	flowID := entry.FlowID
 	if DATASTACKAgent.Flows[entry.AppName] == nil || DATASTACKAgent.Flows[entry.AppName][flowID] == nil {
 		DATASTACKAgent.Logger.Error("%s %s", entry.FlowName, messagegenerator.NoFlowsExistError)
@@ -1076,6 +1076,8 @@ func (DATASTACKAgent *AgentDetails) handleQueuedJobs(wg *sync.WaitGroup) {
 			}
 			if !DATASTACKAgent.Paused {
 				for _, entry := range transferLedgerEntries {
+					// byteData, _ := json.Marshal(entry.MetaData)
+					// entry.MetaData = string(byteData)
 					err = DATASTACKAgent.TransferLedger.UpdateSentOrReadFieldOfEntry(&entry, true)
 					if err != nil {
 						DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.QUEUEDJOBSERROR, metadatagenerator.GenerateErrorMessageMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err)), time.Now(), "OUT", false)
@@ -1158,7 +1160,7 @@ func (DATASTACKAgent *AgentDetails) handleUploadFileRequest(entry models.Transfe
 	fileUploadMetaData.Token = DATASTACKAgent.Token
 
 	DATASTACKAgent.Logger.Info("Handling File Upload Request %s", entry.FlowName)
-	DATASTACKAgent.Logger.Debug("Entry details -: %v", entry)
+	DATASTACKAgent.logStructs(entry)
 	DATASTACKAgent.Logger.Debug("Flow Retry Count -: %v", retryCount)
 
 	for i := 0; i < retryCount; i++ {
@@ -1520,7 +1522,7 @@ func (DATASTACKAgent *AgentDetails) processQueuedDownloads() {
 
 func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.TransferLedgerEntry, blockOpener chan bool) {
 	DATASTACKAgent.Logger.Info("Started file download for Flow-: %v, FlowId-: %v", entry.FlowName, entry.FlowID)
-	DATASTACKAgent.Logger.Debug("Entry details %s", entry.MetaData)
+	DATASTACKAgent.logStructs(entry)
 
 	fileDownloadMetaData := models.DownloadFileRequestMetaData{}
 	err := json.Unmarshal([]byte(entry.MetaData), &fileDownloadMetaData)
@@ -1838,7 +1840,7 @@ func CloseFiles(files []*os.File) {
 
 func (DATASTACKAgent *AgentDetails) handleFileProcessedSuccessRequest(entry models.TransferLedgerEntry) {
 	DATASTACKAgent.Logger.Info("Handling File Processing Success Request - %s", entry.FlowName)
-	DATASTACKAgent.Logger.Debug("Entry details %v", entry)
+	DATASTACKAgent.logStructs(entry)
 	fileUploadMetaData := models.FileUploadMetaData{}
 	err := json.Unmarshal([]byte(entry.MetaData), &fileUploadMetaData)
 	if err != nil {
@@ -1887,7 +1889,7 @@ func (DATASTACKAgent *AgentDetails) handleFileProcessedSuccessRequest(entry mode
 
 func (DATASTACKAgent *AgentDetails) handleFileProcessedFailureRequest(entry models.TransferLedgerEntry) {
 	DATASTACKAgent.Logger.Info("Handling Processing Failure Request - %s", entry.FlowName)
-	DATASTACKAgent.Logger.Debug("Entry details %v ", entry)
+	DATASTACKAgent.logStructs(entry)
 	flowFolder := DATASTACKAgent.AppFolderPath + string(os.PathSeparator) + strings.Replace(entry.FlowName, " ", "_", -1)
 	errorFolder := flowFolder + string(os.PathSeparator) + "error"
 	fileUploadMetaData := models.FileUploadMetaData{}
@@ -1937,4 +1939,11 @@ func (DATASTACKAgent *AgentDetails) handleFileProcessedFailureRequest(entry mode
 	errMsgFilePath := errorFolder + string(os.PathSeparator) + errMsgFileName
 	DATASTACKAgent.Utils.CreateFlowErrorFile(errMsgFilePath, fileUploadMetaData.ErrorMessage)
 	DATASTACKAgent.Logger.Info("Handling Processing failure request completed for flow %s ", entry.FlowName)
+}
+
+func (DATASTACKAgent *AgentDetails) logStructs(entry models.TransferLedgerEntry) {
+	updatedEntry := models.TransferLedgerEntry{}
+	updatedEntry = entry
+	updatedEntry.MetaData = strings.Replace(entry.MetaData, "\"", "", -1)
+	DATASTACKAgent.Logger.Debug("Entry details - %s ", updatedEntry)
 }
