@@ -18,18 +18,18 @@ import (
 	"github.com/appveen/go-log/logger"
 )
 
-//LoggerService - provide log services
+// LoggerService - provide log services
 type LoggerService interface {
 	GetLogger(agentType string, level string, agentName string, agentID string, MaxBackupIndex string, MaxFileSize string, LogRotationType string, logHookURL string, client *http.Client, headers map[string]string) logger.Logger
 }
 
-//Log - empty Log struct
+// Log - empty Log struct
 type Logger struct{}
 
-//GetLogger - get logger
+// GetLogger - get logger
 func (Log *Logger) GetLogger(level string, agentName string, agentID string, MaxBackupIndex string, MaxFileSize string, LogRotationType string, logHookURL string, client *http.Client, headers map[string]string) logger.Logger {
 	logger := log.Logger("logger")
-	pattern := "[%d]" + " [%p]" + " [" + agentName + "]" + " [" + agentID + "]"
+	pattern := "{\"timestamp\":" + "\"%d\"," + "\"level\":" + "\"%p\","
 	mode := strings.ToUpper(level)
 	loggingLevel := levels.INFO
 	switch mode {
@@ -46,9 +46,9 @@ func (Log *Logger) GetLogger(level string, agentName string, agentID string, Max
 	}
 	logger.SetLevel(loggingLevel)
 	if IsKubernetesEnv() {
-		pattern += " [" + os.Getenv("HOSTNAME") + "]"
+		pattern += "\"hostname\":" + os.Getenv("HOSTNAME") + "\","
 	}
-	pattern += " %m"
+	pattern += "\"msg\":" + "\"%m\"}"
 	layoutPattern := layout.Pattern(pattern)
 	consoleAppender := appenders.Console()
 	consoleAppender.SetLayout(layoutPattern)
@@ -100,7 +100,7 @@ func (Log *Logger) GetLogger(level string, agentName string, agentID string, Max
 	return logger
 }
 
-//IsKubernetesEnv - is kubernetes environment
+// IsKubernetesEnv - is kubernetes environment
 func IsKubernetesEnv() bool {
 	if os.Getenv("KUBERNETES_SERVICE_PORT") != "" && os.Getenv("KUBERNETES_SERVICE_HOST") != "" {
 		return true

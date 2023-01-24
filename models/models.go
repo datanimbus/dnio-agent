@@ -4,19 +4,19 @@ import (
 	"time"
 )
 
-//LoginAPIRequest - agent login api request structure
+// LoginAPIRequest - agent login api request structure
 type LoginAPIRequest struct {
 	AgentID      string `json:"agentId"`
 	Password     string `json:"password"`
 	AgentVersion string `json:"agentVersion"`
 }
 
-//LoginAPIResponse - agent login api response structure
+// LoginAPIResponse - agent login api response structure
 type LoginAPIResponse struct {
 	Message string `json:"message"`
 }
 
-//AgentDataFromIM - agent information from IM
+// AgentDataFromIM - agent information from IM
 type AgentData struct {
 	ID                     string `json:"_id"`
 	Active                 bool   `json:"active"`
@@ -36,20 +36,20 @@ type AgentData struct {
 	MaxConcurrentDownloads int    `json:"maxConcurrentDownloads"`
 }
 
-//CentralHeartBeatRequest - agent central heartbeat request structure
+// CentralHeartBeatRequest - agent central heartbeat request structure
 type CentralHeartBeatRequest struct {
 	MonitoringLedgerEntries []MonitoringLedgerEntry `json:"monitoringLedgerEntries"`
 	TransferLedgerEntries   []TransferLedgerEntry   `json:"transferLedgerEntries"`
 }
 
-//CentralHeartBeatResponse - response structure to central heartbeat request
+// CentralHeartBeatResponse - response structure to central heartbeat request
 type CentralHeartBeatResponse struct {
 	TransferLedgerEntries     []TransferLedgerEntry `json:"transferLedgerEntries"`
 	Status                    string                `json:"status"`
 	AgentMaxConcurrentUploads int                   `json:"agentMaxConcurrentUploads"`
 }
 
-//TransferLedgerEntry - TransferLedgerEntry structure of DB
+// TransferLedgerEntry - TransferLedgerEntry structure of DB
 type TransferLedgerEntry struct {
 	ID             string    `storm:"id" bson:"id"`
 	AgentID        string    `json:"agentId" bson:"AgentID"`
@@ -66,7 +66,7 @@ type TransferLedgerEntry struct {
 	Status         string    `json:"status" bson:"Status"`
 }
 
-//MonitoringLedgerEntry - entry structure for flowledger entry
+// MonitoringLedgerEntry - entry structure for flowledger entry
 type MonitoringLedgerEntry struct {
 	AgentID            string         `storm:"id" json:"agentId" bson:"AgentID"`
 	AppName            string         `json:"appName" bson:"AppName"`
@@ -81,13 +81,13 @@ type MonitoringLedgerEntry struct {
 	Release            string         `json:"release" bson:"Release"`
 }
 
-//PendingFiles - pending files struct
+// PendingFiles - pending files struct
 type PendingFiles struct {
 	FlowID string `json:"flowId" bson:"FlowID"`
 	Count  int    `json:"count" bson:"Count"`
 }
 
-//FlowDefinitionResponse - response structure for flow creation request
+// FlowDefinitionResponse - response structure for flow creation request
 type FlowDefinitionResponse struct {
 	FlowName                       string                         `json:"flowName"`
 	FlowID                         string                         `json:"flowId"`
@@ -110,31 +110,31 @@ type FlowDefinitionResponse struct {
 	ErrorBlocks                    bool                           `json:"errorBlocks"`
 }
 
-//InputDirectoryInfo - json data for input directory information
+// InputDirectoryInfo - json data for input directory information
 type InputDirectoryInfo struct {
 	Path                string `json:"path"`
 	WatchSubDirectories bool   `json:"watchSubDirectories"`
 	RootPath            string `json:"rootPath"`
 }
 
-//OutputDirectoryInfo - json data for output directory information
+// OutputDirectoryInfo - json data for output directory information
 type OutputDirectoryInfo struct {
 	Path string `json:"path"`
 }
 
-//FileExtensionStruct - fileExtension struct
+// FileExtensionStruct - fileExtension struct
 type FileExtensionStruct struct {
 	Extension string `json:"extension"`
 	Custom    bool   `json:"custom"`
 }
 
-//UniqueRemoteTransactionOptions - options for File-X for unique transaction ...
+// UniqueRemoteTransactionOptions - options for File-X for unique transaction ...
 type UniqueRemoteTransactionOptions struct {
 	FileName bool `json:"fileName"`
 	Checksum bool `json:"checksum"`
 }
 
-//TimeBoundProperties - properties for greenzone, for picking up the file
+// TimeBoundProperties - properties for greenzone, for picking up the file
 type TimeBoundProperties struct {
 	CronRegEx            string            `json:"cronRegEx"`
 	Enabled              bool              `json:"enabled"`
@@ -142,25 +142,25 @@ type TimeBoundProperties struct {
 	TimeBounds           []TimeBoundStruct `json:"timebounds"`
 }
 
-//TimeBoundStruct for range of weeks, months
+// TimeBoundStruct for range of weeks, months
 type TimeBoundStruct struct {
 	From string `json:"from"`
 	To   string `json:"to"`
 }
 
-//EncryptionDecryptionTool - encryption decryption tool
+// EncryptionDecryptionTool - encryption decryption tool
 type EncryptionDecryptionTool struct {
 	Password       string `json:"password"`
 	InputFilePath  string `json:"inputFilePath"`
 	OutputFilePath string `json:"outputFilePath"`
 }
 
-//EncryptionDecryptionToolMessage - encryption decryption too message
+// EncryptionDecryptionToolMessage - encryption decryption too message
 type EncryptionDecryptionToolMessage struct {
 	Message string `json:"message"`
 }
 
-//FlowWatcherProperties - watcher properties of that flow
+// FlowWatcherProperties - watcher properties of that flow
 type FlowWatcherProperties struct {
 	AppName                string                         `json:"appName"`
 	AgentName              string                         `json:"agentName"`
@@ -182,7 +182,7 @@ type FlowWatcherProperties struct {
 	ErrorBlocks            bool                           `json:"errorBlocks"`
 }
 
-//MirrorDirectoryMetaData - mirror directory metadata
+// MirrorDirectoryMetaData - mirror directory metadata
 type MirrorDirectoryMetaData struct {
 	OperatingSystem string                `json:"operatingSystem"`
 	MirrorPaths     []string              `json:"mirrorPaths"`
@@ -190,7 +190,7 @@ type MirrorDirectoryMetaData struct {
 	TargetAgentID   string                `json:"targetAgentID"`
 }
 
-//FileUploadMetaData - utility structure for file upload metadata
+// FileUploadMetaData - utility structure for file upload metadata
 type FileUploadMetaData struct {
 	FlowName                string                `json:"flowName"`
 	FlowID                  string                `json:"flowId"`
@@ -217,7 +217,7 @@ type FileUploadMetaData struct {
 	FlowWatcherProperties   FlowWatcherProperties `json:"flowWatcherProperties"`
 }
 
-//ErrorFlowRequestData - request data for error flow
+// ErrorFlowRequestData - request data for error flow
 type ErrorFlowRequestData struct {
 	AppName    string `json:"appName"`
 	AgentID    string `json:"agentId"`
@@ -231,21 +231,21 @@ type ErrorFlowRequestData struct {
 	StatusCode string `json:"statusCode"`
 }
 
-//PendingFileMetadata - pending file metadata
+// PendingFileMetadata - pending file metadata
 type QueuedFileMetadata struct {
 	FlowProperties FlowWatcherProperties
 	TimeStamp      time.Time
 	Entry          TransferLedgerEntry
 }
 
-//FileUploadErrorMetaData - file upload error meta data
+// FileUploadErrorMetaData - file upload error meta data
 type FileUploadErrorMetaData struct {
 	ErrorMessage   string `json:"errorMessage"`
 	RemoteTxnID    string `json:"remoteTxnID"`
 	DATASTACKTxnID string `json:"dataStackTxnID"`
 }
 
-//InteractionMetadata - metadata for interaction
+// InteractionMetadata - metadata for interaction
 type InteractionMetadata struct {
 	FileSuffix        string   `json:"fileSuffix"`
 	InputDirectory    string   `json:"inputDirectory"`
@@ -269,7 +269,7 @@ type InteractionMetadata struct {
 	OS                string   `json:"os" bson:"os"`
 }
 
-//DownloadFileRequestMetaData - utility structure for any file download request
+// DownloadFileRequestMetaData - utility structure for any file download request
 type DownloadFileRequestMetaData struct {
 	FileName              string   `json:"fileName"`
 	RemoteTxnID           string   `json:"remoteTxnID"`
@@ -290,14 +290,14 @@ type DownloadFileRequestMetaData struct {
 	DownloadAgentID       string   `json:"downloadAgentID"`
 }
 
-//FileDownloadErrorMetaData - file download error meta data
+// FileDownloadErrorMetaData - file download error meta data
 type FileDownloadErrorMetaData struct {
 	ErrorMessage   string `json:"errorMessage"`
 	RemoteTxnID    string `json:"remoteTxnID"`
 	DATASTACKTxnID string `json:"dataStackTxnID"`
 }
 
-//DownloadFileRequest - request structure for download file
+// DownloadFileRequest - request structure for download file
 type DownloadFileRequest struct {
 	AgentName    string `json:"agentName"`
 	AgentID      string `json:"agentId"`
@@ -307,4 +307,18 @@ type DownloadFileRequest struct {
 	FlowID       string `json:"flowId"`
 	AppName      string `json:"appName"`
 	FileID       string `json:"fileID"`
+}
+
+// FilePostProcessSuccessErrorMetaData - file post process error meta data
+type FilePostProcessSuccessErrorMetaData struct {
+	ErrorMessage   string `json:"errorMessage"`
+	RemoteTxnID    string `json:"remoteTxnID"`
+	DATASTACKTxnID string `json:"dataStackTxnID"`
+}
+
+// FilePostProcessFailureErrorMetaData - file post process error meta data
+type FilePostProcessFailureErrorMetaData struct {
+	ErrorMessage   string `json:"errorMessage"`
+	RemoteTxnID    string `json:"remoteTxnID"`
+	DATASTACKTxnID string `json:"dataStackTxnID"`
 }

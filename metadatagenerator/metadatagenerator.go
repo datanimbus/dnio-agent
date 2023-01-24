@@ -8,12 +8,12 @@ import (
 	"strings"
 )
 
-//ErrorMessageMetaData - file process error metadata
+// ErrorMessageMetaData - file process error metadata
 type ErrorMessageMetaData struct {
 	ErrorMessage string `json:"errorMessage"`
 }
 
-//GenerateErrorMessageMetaData - generate error message metadata
+// GenerateErrorMessageMetaData - generate error message metadata
 func GenerateErrorMessageMetaData(message string) string {
 	metaData := ErrorMessageMetaData{}
 	metaData.ErrorMessage = message
@@ -21,7 +21,7 @@ func GenerateErrorMessageMetaData(message string) string {
 	return string(byteData)
 }
 
-//GenerateFileUploadErrorMetaDataForLargeFileNameOrMaxFileSize - generate file upload error metadata for large file name or max size
+// GenerateFileUploadErrorMetaDataForLargeFileNameOrMaxFileSize - generate file upload error metadata for large file name or max size
 func GenerateFileUploadErrorMetaDataForLargeFileNameOrMaxFileSize(originalFileName string, originalFilePath string, mirrorPath string, uniqueRemoteTransaction bool, uniqueFileName bool, uniqueCheckSum bool, structureID string, blockName string, inputDirectory string, newFileName string, newLocation string, md5Checksum string, remoteTxnID string, dataStackTxnID string, errorMessage string) string {
 	metaData := models.FileUploadMetaData{}
 	metaData.OriginalFileName = originalFileName
@@ -43,7 +43,7 @@ func GenerateFileUploadErrorMetaDataForLargeFileNameOrMaxFileSize(originalFileNa
 	return string(byteData)
 }
 
-//GenerateFileUploadMetaData - generate file upload metadata
+// GenerateFileUploadMetaData - generate file upload metadata
 func GenerateFileUploadMetaData(originalFileName string, originalFilePath string, mirrorPath string, uniqueRemoteTransaction bool, uniqueFileName bool, uniqueCheckSum bool, structureID string, blockName string, inputDirectory string, newFileName string, newLocation string, md5Checksum string, remoteTxnID string, dataStackTxnID string, properties models.FlowWatcherProperties) string {
 	metaData := models.FileUploadMetaData{}
 	metaData.OriginalFileName = originalFileName
@@ -65,7 +65,7 @@ func GenerateFileUploadMetaData(originalFileName string, originalFilePath string
 	return string(byteData)
 }
 
-//GenerateFileUploadErrorMetaData - generate file upload error meta data
+// GenerateFileUploadErrorMetaData - generate file upload error meta data
 func GenerateFileUploadErrorMetaData(errorMessage string, remoteTxnID string, dataStackTxnID string) string {
 	metaData := models.FileUploadErrorMetaData{}
 	metaData.ErrorMessage = errorMessage
@@ -76,7 +76,7 @@ func GenerateFileUploadErrorMetaData(errorMessage string, remoteTxnID string, da
 
 }
 
-//GenerateFileUploadedInteractionMetaData - generate file upload interaction meta data
+// GenerateFileUploadedInteractionMetaData - generate file upload interaction meta data
 func GenerateFileUploadedInteractionMetaData(inputDirectory string, blockName string, size string, fileName string, sequenceNo string, structureID string, remoteTxnID string, dataStackTxnID string, checksum string, ipAddress string, macAddress string, encrypt bool, baseInteractionID string, reattemptCount int, attemptNo int, mirrorPath string, os string) string {
 	metaData := models.InteractionMetadata{}
 	metaData.InputDirectory = inputDirectory
@@ -102,7 +102,7 @@ func GenerateFileUploadedInteractionMetaData(inputDirectory string, blockName st
 	return string(byteData)
 }
 
-//GenerateFileDownloadErrorMetaData - generate file download error meta data
+// GenerateFileDownloadErrorMetaData - generate file download error meta data
 func GenerateFileDownloadErrorMetaData(errorMessage string, remoteTxnID string, dataStackTxnID string) string {
 	metaData := models.FileDownloadErrorMetaData{}
 	metaData.ErrorMessage = errorMessage
@@ -112,7 +112,7 @@ func GenerateFileDownloadErrorMetaData(errorMessage string, remoteTxnID string, 
 	return string(byteData)
 }
 
-//GenerateFileDownloadedInteractionMetaData - generate file download interaction meta data
+// GenerateFileDownloadedInteractionMetaData - generate file download interaction meta data
 func GenerateFileDownloadedInteractionMetaData(outputDirectory []string, blockName string, size string, fileName string, sequenceNo string, structureID string, remoteTxnID string, dataStackTxnID string, checksum string, ipAddress string, macAddress string, encrypt bool, successFlow string) string {
 	metaData := models.InteractionMetadata{}
 	for _, dir := range outputDirectory {
@@ -137,6 +137,26 @@ func GenerateFileDownloadedInteractionMetaData(outputDirectory []string, blockNa
 	} else {
 		metaData.SuccessFlow = false
 	}
+	byteData, _ := json.Marshal(metaData)
+	return string(byteData)
+}
+
+// GeneratePostProcessSuccessErrorMetaData - generate post process success error meta data
+func GeneratePostProcessSuccessErrorMetaData(errorMessage string, remoteTxnID string, dataStackTxnID string) string {
+	metaData := models.FilePostProcessSuccessErrorMetaData{}
+	metaData.ErrorMessage = errorMessage
+	metaData.DATASTACKTxnID = dataStackTxnID
+	metaData.RemoteTxnID = remoteTxnID
+	byteData, _ := json.Marshal(metaData)
+	return string(byteData)
+}
+
+// GeneratePostProcessFailureErrorMetaData - generate post process success error meta data
+func GeneratePostProcessFailureErrorMetaData(errorMessage string, remoteTxnID string, dataStackTxnID string) string {
+	metaData := models.FilePostProcessFailureErrorMetaData{}
+	metaData.ErrorMessage = errorMessage
+	metaData.DATASTACKTxnID = dataStackTxnID
+	metaData.RemoteTxnID = remoteTxnID
 	byteData, _ := json.Marshal(metaData)
 	return string(byteData)
 }
