@@ -359,7 +359,7 @@ func (DATASTACKAgent *AgentDetails) initCentralHeartBeat(wg *sync.WaitGroup) {
 				continue
 			}
 
-			DATASTACKAgent.Logger.Info("Heartbeat Response from Integration Manager - %s", data)
+			DATASTACKAgent.Logger.Info("Heartbeat Response from Integration Manager - %s", data.Status)
 			if !DATASTACKAgent.Paused {
 				switch data.Status {
 				case AlreadyRunningAgent:
@@ -1373,7 +1373,7 @@ func (DATASTACKAgent *AgentDetails) SendFileInChunksToBM(entry models.TransferLe
 					}
 
 					if string(message) != "" && (string(message) != "File Successfully Uploaded") || (string(message) != "Chunk Successfully Uploaded") {
-						DATASTACKAgent.Logger.Error(message)
+						DATASTACKAgent.Logger.Debug(message)
 						resMessage = string(message)
 					}
 
@@ -1732,7 +1732,7 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 					dataToWriteInFile = encryptedChunk
 					encryptedChunk = nil
 				} else {
-					decryptedData, err := DATASTACKAgent.Utils.DecryptData(decodedBuffer, fileDownloadMetaData.Password)
+					decryptedData, err := DATASTACKAgent.Utils.DecryptData(decodedBuffer, DATASTACKAgent.EncryptionKey)
 					if err != nil {
 						downloadFileError = err
 						DATASTACKAgent.Logger.Error("Decrypting chunk error -: ", err)
