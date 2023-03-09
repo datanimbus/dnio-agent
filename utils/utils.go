@@ -168,7 +168,7 @@ func (Utils *UtilsService) MakeJSONRequest(client *http.Client, url string, payl
 		data = nil
 		return errr
 	}
-	if res.StatusCode != 200 {
+	if res.StatusCode != 200 && res.StatusCode != 403 {
 		if res.Body != nil {
 			responseData, _ := ioutil.ReadAll(res.Body)
 			return errors.New(string(responseData))

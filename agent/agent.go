@@ -182,14 +182,6 @@ func SetUpAgent(centralFolder string, DATASTACKAgent *AgentDetails, pass string,
 	}
 
 	DATASTACKAgent.Logger = logger
-	DATASTACKAgent.IPAddress = DATASTACKAgent.Utils.GetLocalIP()
-	list, err := DATASTACKAgent.Utils.GetMacAddr()
-	if err != nil {
-		DATASTACKAgent.Logger.Error(fmt.Sprintf("Mac Address fetching error -: %s", err))
-		os.Exit(0)
-	}
-	DATASTACKAgent.MACAddress = list[0]
-
 	DATASTACKAgent.AppFolderPath = DATASTACKAgent.ExecutableDirectory + string(os.PathSeparator) + ".." + string(os.PathSeparator) + string(os.PathSeparator) + "data" + string(os.PathSeparator) + strings.Replace(DATASTACKAgent.AppName, " ", "_", -1)
 	DATASTACKAgent.TransferLedgerPath = DATASTACKAgent.ExecutableDirectory + string(os.PathSeparator) + ".." + string(os.PathSeparator) + "conf" + string(os.PathSeparator) + "transfer-ledger.db"
 	DATASTACKAgent.MonitoringLedgerPath = DATASTACKAgent.ExecutableDirectory + string(os.PathSeparator) + ".." + string(os.PathSeparator) + string(os.PathSeparator) + "conf" + string(os.PathSeparator) + "monitoring-ledger.db"
@@ -252,7 +244,8 @@ func (DATASTACKAgent *AgentDetails) StartAgent() error {
 		DATASTACKAgent.Logger.Error(fmt.Sprintf("%s", err))
 		os.Exit(0)
 	}
-	DATASTACKAgent.getRunningOrPendingFlowsFromB2BManager()
+
+	go DATASTACKAgent.getRunningOrPendingFlowsFromB2BManager()
 	DATASTACKAgent.Logger.Info("Maximum concurrent watcher limited to 1024.")
 	DATASTACKAgent.Logger.Info("Starting central Heartbeat")
 	go DATASTACKAgent.initCentralHeartBeat(&wg)
@@ -457,7 +450,7 @@ func (DATASTACKAgent *AgentDetails) handleFlowCreateStartOrUpdateRequest(entry m
 			return
 		}
 	case ledgers.FLOWUPDATEREQUEST:
-		DATASTACKAgent.Logger.Debug("Handling Flow Update Request - %s", entry.FlowName)
+		DATASTACKAgent.Logger.Info("Handling Flow Update Request - %s", entry.FlowName)
 		DATASTACKAgent.logStructs(entry)
 		DATASTACKAgent.handleFlowStopRequest(entry)
 	}
@@ -575,6 +568,7 @@ func (DATASTACKAgent *AgentDetails) handleFlowCreateStartOrUpdateRequest(entry m
 						DATASTACKAgent.WatchersRunning.Add(1)
 						DATASTACKAgent.Logger.Info("Consumed %v/1024 watchers", DATASTACKAgent.WatchersRunning.Value())
 						go DATASTACKAgent.pollInputDirectoryEveryXSeconds(entry, properties)
+						continue
 					} else {
 						DATASTACKAgent.Logger.Info("Cannot start watcher already 1024 watchers are running")
 					}

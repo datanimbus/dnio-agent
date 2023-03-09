@@ -34,6 +34,8 @@ var Utils = utils.UtilsService{}
 var BMResponse = models.LoginAPIResponse{}
 var isInternalAgent string
 var AgentDataFromIM = models.AgentData{}
+var ipAddress string
+var macAddress string
 
 type program struct {
 	exit chan struct{}
@@ -180,11 +182,21 @@ func verifyAgentPassword(password string) string {
 		pass = password
 	}
 
+	ipAddress = Utils.GetLocalIP()
+	list, err := Utils.GetMacAddr()
+	if err != nil {
+		svcLog.Error(fmt.Sprintf("Mac Address fetching error -: %s", err))
+		os.Exit(0)
+	}
+	macAddress = list[0]
+
 	confData := Utils.ReadCentralConfFile(*confFilePath)
 	payload := models.LoginAPIRequest{
 		AgentID:      confData["agent-id"],
 		Password:     pass,
 		AgentVersion: confData["agent-version"],
+		IPAddress:    ipAddress,
+		MACAddress:   macAddress,
 	}
 	data, err := json.Marshal(payload)
 	if err != nil {
@@ -250,14 +262,6 @@ func verifyAgentPassword(password string) string {
 			os.Exit(0)
 		}
 
-		ipAddress := Utils.GetLocalIP()
-		list, err := Utils.GetMacAddr()
-		if err != nil {
-			svcLog.Error(fmt.Sprintf("Mac Address fetching error -: %s", err))
-			os.Exit(0)
-		}
-		macAddress := list[0]
-
 		headers["DATA-STACK-Agent-Id"] = confData["agent-id"]
 		headers["DATA-STACK-Agent-Name"] = confData["agent-name"]
 		headers["DATA-STACK-App-Name"] = AgentDataFromIM.AppName
@@ -294,6 +298,8 @@ func startAgent(confFilePath string, data map[string]string, password string, in
 	DATASTACKAgent.DownloadRetryCounter = AgentDataFromIM.DownloadRetryCounter
 	DATASTACKAgent.MaxConcurrentUploads = AgentDataFromIM.MaxConcurrentUploads
 	DATASTACKAgent.MaxConcurrentDownloads = AgentDataFromIM.MaxConcurrentDownloads
+	DATASTACKAgent.IPAddress = ipAddress
+	DATASTACKAgent.MACAddress = macAddress
 	agent.SetUpAgent(data["central-folder"], &DATASTACKAgent, password, interactive, Logger)
 	DATASTACKAgent.StartAgent()
 }

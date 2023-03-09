@@ -9,6 +9,8 @@ type LoginAPIRequest struct {
 	AgentID      string `json:"agentId"`
 	Password     string `json:"password"`
 	AgentVersion string `json:"agentVersion"`
+	IPAddress    string `json:"ipAddress"`
+	MACAddress   string `json:"macAddress"`
 }
 
 // LoginAPIResponse - agent login api response structure
