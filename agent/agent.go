@@ -241,7 +241,7 @@ func (DATASTACKAgent *AgentDetails) StartAgent() error {
 		AbsolutePath:       DATASTACKAgent.AbsolutePath,
 	})
 	if err != nil {
-		DATASTACKAgent.Logger.Error(fmt.Sprintf("%s", err))
+		DATASTACKAgent.Logger.Error("Error - ", err)
 		os.Exit(0)
 	}
 
@@ -283,7 +283,7 @@ func (DATASTACKAgent *AgentDetails) getRunningOrPendingFlowsFromB2BManager() {
 		if strings.Contains(messagegenerator.ExtractErrorMessageFromErrorObject(err), messagegenerator.InvalidIP) {
 			DATASTACKAgent.Logger.Error("IP is not trusted, stopping the agent")
 		} else {
-			DATASTACKAgent.Logger.Error(fmt.Sprintf("%s", err))
+			DATASTACKAgent.Logger.Error("Error - ", err)
 		}
 		os.Exit(0)
 	}
@@ -861,7 +861,7 @@ func (DATASTACKAgent *AgentDetails) initExistingUploadsFromInputFolder(inputFold
 	flowFolder := DATASTACKAgent.AppFolderPath + string(os.PathSeparator) + strings.Replace(entry.FlowName, " ", "_", -1)
 	values, err := DATASTACKAgent.Utils.ReadFlowConfigurationFile(flowFolder + string(os.PathSeparator) + "flow.conf")
 	if err != nil {
-		DATASTACKAgent.Logger.Error(fmt.Sprintf("%s", err))
+		DATASTACKAgent.Logger.Error("Error - ", err)
 	}
 	newFlowReq := models.FlowDefinitionResponse{}
 	err = json.Unmarshal([]byte(entry.MetaData), &newFlowReq)
@@ -926,7 +926,7 @@ func (DATASTACKAgent *AgentDetails) initExistingUploadsFromInputFolder(inputFold
 		if !inputFile.IsDir() && inputFile.Name() != "" {
 			_, err := regexp.MatchString(values["file-suffix"], inputFile.Name())
 			if err != nil {
-				DATASTACKAgent.Logger.Error(fmt.Sprintf("%s", err))
+				DATASTACKAgent.Logger.Error("Error - ", err)
 			}
 			matched := DATASTACKAgent.Utils.CheckFileRegexAndExtension(inputFile.Name(), newFlowReq.FileExtensions, newFlowReq.FileNameRegexs)
 			result, ok := fileInUploadQueue.Load(inputFolder + string(os.PathSeparator) + inputFile.Name())
@@ -969,7 +969,7 @@ func (DATASTACKAgent *AgentDetails) initExistingUploadsFromInputFolder(inputFold
 				DATASTACKAgent.Logger.Info("Adding Upload Request In Queue for file %s", originalAbsoluteFilePath)
 				u := uuid.NewV4()
 				if err != nil {
-					DATASTACKAgent.Logger.Error(fmt.Sprintf("%s", err))
+					DATASTACKAgent.Logger.Error("Error - ", err)
 				}
 				remoteTxnID := originalFileName
 				dataStackTxnID := u.String()
@@ -1140,7 +1140,7 @@ func (DATASTACKAgent *AgentDetails) handleUploadFileRequest(entry models.Transfe
 	fileUploadMetaData.FlowID = entry.FlowID
 
 	if err != nil {
-		DATASTACKAgent.Logger.Error(fmt.Sprintf("%s", err))
+		DATASTACKAgent.Logger.Error("Error - ", err)
 		DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.UPLOADERROR, metadatagenerator.GenerateFileUploadErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileUploadMetaData.RemoteTxnID, fileUploadMetaData.DataStackTxnID), time.Now(), "OUT", false)
 		fileInUploadQueue.Delete(fileUploadMetaData.OriginalFilePath)
 		blockOpener <- true
