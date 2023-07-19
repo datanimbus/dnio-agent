@@ -35,8 +35,8 @@ RUN apt-get install -y wget
 
 WORKDIR /app
 
-RUN wget --user __signing_key_user__ --password __signing_key_password__ https://cicd.ds.appveen.com/agentbuild/out.key
-RUN wget --user __signing_key_user__ --password __signing_key_password__ https://cicd.ds.appveen.com/agentbuild/cd786349a667ff05-SHA2.pem
+RUN wget --user __signing_key_user__ --password __signing_key_password__ https://cicd.ds.datanimbus.com/agentbuild/out.key
+RUN wget --user __signing_key_user__ --password __signing_key_password__ https://cicd.ds.datanimbus.com/agentbuild/cd786349a667ff05-SHA2.pem
 
 COPY --from=agents /app/exec ./exec
 COPY --from=agents /app/scriptFiles ./scriptFiles
