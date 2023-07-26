@@ -475,7 +475,7 @@ func (DATASTACKAgent *AgentDetails) handleFlowCreateStartOrUpdateRequest(entry m
 	for i := 0; i < len(newFlowReq.InputDirectory); i++ {
 		newFlowReq.InputDirectory[i].Path = returnAbsolutePath(newFlowReq.InputDirectory[i].Path)
 	}
-	listener := true
+	listener := weHaveToStartListenerOrNot(newFlowReq.Direction)
 	if watchingDirectoryMap[entry.FlowID] == nil {
 		watchingDirectoryMap[entry.FlowID] = make(map[string]bool)
 	}
@@ -1940,4 +1940,12 @@ func (DATASTACKAgent *AgentDetails) logStructs(entry models.TransferLedgerEntry)
 	updatedEntry = entry
 	updatedEntry.MetaData = strings.Replace(entry.MetaData, "\"", "", -1)
 	DATASTACKAgent.Logger.Debug("Entry details - %s ", updatedEntry)
+}
+
+func weHaveToStartListenerOrNot(Direction string) bool {
+	listener := false
+	if Direction == "input" {
+		listener = true
+	}
+	return listener
 }
