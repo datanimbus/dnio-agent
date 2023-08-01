@@ -2,8 +2,8 @@
 set -e
 if [ -f $WORKSPACE/../TOGGLE ]; then
     echo "****************************************************"
-    echo "data.stack.b2b.agents :: Toggle mode is on, terminating build"
-    echo "data.stack.b2b.agents :: BUILD CANCLED"
+    echo "datanimbus.io.b2b.agents :: Toggle mode is on, terminating build"
+    echo "datanimbus.io.b2b.agents :: BUILD CANCLED"
     echo "****************************************************"
     exit 0
 fi
@@ -28,8 +28,8 @@ if [ $1 ]; then
 fi
 if [ ! $REL ]; then
     echo "****************************************************"
-    echo "data.stack.b2b.agents :: Please Create file DATA_STACK_RELEASE with the releaese at $WORKSPACE or provide it as 1st argument of this script."
-    echo "data.stack.b2b.agents :: BUILD FAILED"
+    echo "datanimbus.io.b2b.agents :: Please Create file DATA_STACK_RELEASE with the releaese at $WORKSPACE or provide it as 1st argument of this script."
+    echo "datanimbus.io.b2b.agents :: BUILD FAILED"
     echo "****************************************************"
     exit 0
 fi
@@ -42,13 +42,13 @@ if [ $3 ]; then
 fi
 # if [ $CICD ]; then
 #     echo "****************************************************"
-#     echo "data.stack.b2b.agents :: CICI env found"
+#     echo "datanimbus.io.b2b.agents :: CICI env found"
 #     echo "****************************************************"
 #     # TAG=$TAG"_"$cDate
 #     if [ ! -f $WORKSPACE/../DATA_STACK_NAMESPACE ]; then
 #         echo "****************************************************"
-#         echo "data.stack.b2b.agents :: Please Create file DATA_STACK_NAMESPACE with the namespace at $WORKSPACE"
-#         echo "data.stack.b2b.agents :: BUILD FAILED"
+#         echo "datanimbus.io.b2b.agents :: Please Create file DATA_STACK_NAMESPACE with the namespace at $WORKSPACE"
+#         echo "datanimbus.io.b2b.agents :: BUILD FAILED"
 #         echo "****************************************************"
 #         exit 0
 #     fi
@@ -58,11 +58,11 @@ fi
 # sh $WORKSPACE/scripts/prepare_yaml.sh $REL $2
 
 echo "****************************************************"
-echo "data.stack.b2b.agents :: Using build :: "$TAG
+echo "datanimbus.io.b2b.agents :: Using build :: "$TAG
 echo "****************************************************"
 
 echo "****************************************************"
-echo "data.stack.b2b.agents :: Adding IMAGE_TAG in Dockerfile :: "$TAG
+echo "datanimbus.io.b2b.agents :: Adding IMAGE_TAG in Dockerfile :: "$TAG
 echo "****************************************************"
 sed -i.bak s#__image_tag__#$TAG# Dockerfile
 sed -i.bak s#__signing_key_user__#$SIGNING_KEY_USER# Dockerfile
@@ -70,14 +70,14 @@ sed -i.bak s#__signing_key_password__#$SIGNING_KEY_PASSWORD# Dockerfile
 
 if [ -f $WORKSPACE/../CLEAN_BUILD_AGENT ]; then
     echo "****************************************************"
-    echo "data.stack.b2b.agents :: Doing a clean build"
+    echo "datanimbus.io.b2b.agents :: Doing a clean build"
     echo "****************************************************"
 
-    docker build --no-cache -t data.stack.b2b.agents.$TAG .
+    docker build --no-cache -t datanimbus.io.b2b.agents.$TAG .
     rm $WORKSPACE/../CLEAN_BUILD_AGENT
 
     # echo "****************************************************"
-    # echo "data.stack.b2b.agents :: Copying deployment files"
+    # echo "datanimbus.io.b2b.agents :: Copying deployment files"
     # echo "****************************************************"
 
     # if [ $CICD ]; then
@@ -97,26 +97,26 @@ if [ -f $WORKSPACE/../CLEAN_BUILD_AGENT ]; then
 
 else
     echo "****************************************************"
-    echo "data.stack.b2b.agents :: Doing a normal build"   
+    echo "datanimbus.io.b2b.agents :: Doing a normal build"   
     echo "****************************************************"
-    docker build -t data.stack.b2b.agents.$TAG .
+    docker build -t datanimbus.io.b2b.agents.$TAG .
     # if [ $CICD ]; then
     #     if [ $DOCKER_REG ]; then
-    #         kubectl set image deployment/agent agent=$DOCKER_REG/data.stack.b2b.agents.$TAG -n $DATA_STACK_NS --record=true
+    #         kubectl set image deployment/agent agent=$DOCKER_REG/datanimbus.io.b2b.agents.$TAG -n $DATA_STACK_NS --record=true
     #     else 
-    #         kubectl set image deployment/agent agent=data.stack.b2b.agents.$TAG -n $DATA_STACK_NS --record=true
+    #         kubectl set image deployment/agent agent=datanimbus.io.b2b.agents.$TAG -n $DATA_STACK_NS --record=true
     #     fi
     # fi
 fi
 if [ $DOCKER_REG ]; then
     echo "****************************************************"
-    echo "data.stack.b2b.agents :: Docker Registry found, pushing image"
+    echo "datanimbus.io.b2b.agents :: Docker Registry found, pushing image"
     echo "****************************************************"
 
-    docker tag data.stack.b2b.agents.$TAG $DOCKER_REG/data.stack.b2b.agents.$TAG
-    docker push $DOCKER_REG/data.stack.b2b.agents.$TAG
+    docker tag datanimbus.io.b2b.agents.$TAG $DOCKER_REG/datanimbus.io.b2b.agents.$TAG
+    docker push $DOCKER_REG/datanimbus.io.b2b.agents.$TAG
 fi
 echo "****************************************************"
-echo "data.stack.b2b.agents :: BUILD SUCCESS :: data.stack.b2b.agents.$TAG"
+echo "datanimbus.io.b2b.agents :: BUILD SUCCESS :: datanimbus.io.b2b.agents.$TAG"
 echo "****************************************************"
 echo $TAG > $WORKSPACE/../LATEST_AGENT
