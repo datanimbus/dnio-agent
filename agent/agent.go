@@ -255,9 +255,9 @@ func (DATASTACKAgent *AgentDetails) StartAgent() error {
 	go DATASTACKAgent.processQueuedUploads()
 	DATASTACKAgent.Logger.Info("Starting Queue Downloads")
 	go DATASTACKAgent.processQueuedDownloads()
-	DATASTACKAgent.CompactDBHandler()
+	go DATASTACKAgent.CompactDBHandler()
 	// DATASTACKAgent.QueuedFileUploadWatcher()
-	DATASTACKAgent.handleQueuedJobs(&wg)
+	go DATASTACKAgent.handleQueuedJobs(&wg)
 	DATASTACKAgent.Logger.Info("Started Queued Jobs Handler")
 
 	wg.Wait()
@@ -283,7 +283,7 @@ func (DATASTACKAgent *AgentDetails) getRunningOrPendingFlowsFromB2BManager() {
 		if strings.Contains(messagegenerator.ExtractErrorMessageFromErrorObject(err), messagegenerator.InvalidIP) {
 			DATASTACKAgent.Logger.Error("IP is not trusted, stopping the agent")
 		} else {
-			DATASTACKAgent.Logger.Error("Error - ", err)
+			DATASTACKAgent.Logger.Error("Error - ", err.Error())
 		}
 		os.Exit(0)
 	}
@@ -352,7 +352,7 @@ func (DATASTACKAgent *AgentDetails) initCentralHeartBeat(wg *sync.WaitGroup) {
 				continue
 			}
 
-			DATASTACKAgent.Logger.Info("Heartbeat Response from Integration Manager - %s", data.Status)
+			DATASTACKAgent.Logger.Info("Heartbeat Response from Integration Manager - ", data)
 			if !DATASTACKAgent.Paused {
 				switch data.Status {
 				case AlreadyRunningAgent:
@@ -372,8 +372,10 @@ func (DATASTACKAgent *AgentDetails) initCentralHeartBeat(wg *sync.WaitGroup) {
 				DATASTACKAgent.MaxConcurrentUploads = data.AgentMaxConcurrentUploads
 			}
 
+			DATASTACKAgent.Logger.Trace("%v entries fetched", len(data.TransferLedgerEntries))
 			for _, entry := range data.TransferLedgerEntries {
 				if entry.Action != ledgers.CREATEAPIFLOWREQUEST && entry.Action != ledgers.STOPAPIFLOWREQUEST {
+					DATASTACKAgent.Logger.Trace("Heartbeat Entry - ", entry)
 					err = DATASTACKAgent.TransferLedger.AddEntry(&entry)
 					if err != nil {
 						DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.HEARTBEATERROR, metadatagenerator.GenerateErrorMessageMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err)), time.Now(), "OUT", false)
@@ -1083,6 +1085,7 @@ func (DATASTACKAgent *AgentDetails) handleQueuedJobs(wg *sync.WaitGroup) {
 						return
 					case ledgers.FLOWSTARTREQUEST:
 						go DATASTACKAgent.handleFlowCreateStartOrUpdateRequest(entry)
+						return
 					case ledgers.FLOWUPDATEREQUEST:
 						go DATASTACKAgent.handleFlowCreateStartOrUpdateRequest(entry)
 						return
