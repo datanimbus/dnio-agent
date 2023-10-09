@@ -11,6 +11,9 @@ import (
 const (
 	//RUNNING - status when agent is successfully running
 	RUNNING = "RUNNING"
+
+	//STOPPED - status when agent is stopped
+	STOPPED = "STOPPED"
 )
 
 type MonitorLedgerService interface {
@@ -18,13 +21,13 @@ type MonitorLedgerService interface {
 	GetAllEntries() ([]models.MonitoringLedgerEntry, error)
 }
 
-//MonitoringLedger - ledger to main flows creation/deletion
+// MonitoringLedger - ledger to main flows creation/deletion
 type MonitoringLedger struct {
 	DB    *storm.DB
 	STORE string
 }
 
-//InitMonitoringLedger - intialize ledger ledger
+// InitMonitoringLedger - intialize ledger ledger
 func InitMonitoringLedger(filePath string, store string) (*MonitoringLedger, error) {
 	db, err := storm.Open(filePath)
 	if err != nil {
@@ -36,7 +39,7 @@ func InitMonitoringLedger(filePath string, store string) (*MonitoringLedger, err
 	return &monitoringLedger, nil
 }
 
-//AddOrUpdateEntry - add new entry to monitoring ledger
+// AddOrUpdateEntry - add new entry to monitoring ledger
 func (db *MonitoringLedger) AddOrUpdateEntry(entry *models.MonitoringLedgerEntry) error {
 	var newEntry models.MonitoringLedgerEntry
 	err := db.DB.One("AgentID", entry.AgentID, &newEntry)
@@ -57,7 +60,7 @@ func (db *MonitoringLedger) AddOrUpdateEntry(entry *models.MonitoringLedgerEntry
 	return nil
 }
 
-//GetAllEntries - get all entries of monitoring table
+// GetAllEntries - get all entries of monitoring table
 func (db *MonitoringLedger) GetAllEntries() ([]models.MonitoringLedgerEntry, error) {
 	monitoringLedgerEntries := []models.MonitoringLedgerEntry{}
 	query := db.DB.Select(q.Eq("Status", "RUNNING"))

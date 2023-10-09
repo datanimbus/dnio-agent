@@ -272,7 +272,7 @@ func verifyAgentPassword(password string) string {
 		Logger = LoggerService.GetLogger(confData["log-level"], confData["agent-name"], confData["agent-id"], "", "", "days", logsHookURL, logClient, headers)
 
 		Logger.Info("Agent Successfuly Logged In")
-		Logger.Trace("Agent details fetched -  %v ", AgentDataFromIM)
+		// Logger.Trace("Agent details fetched -  %v ", AgentDataFromIM)
 	}
 	return string(pass)
 }
@@ -287,6 +287,7 @@ func startAgent(confFilePath string, data map[string]string, password string, in
 	DATASTACKAgent.HeartBeatFrequency = data["heartbeat-frequency"]
 	DATASTACKAgent.LogLevel = data["log-level"]
 	DATASTACKAgent.SentinelPortNumber = data["sentinel-port-number"]
+	DATASTACKAgent.PollerFrequency = data["poller-frequency"]
 	DATASTACKAgent.EncryptFile = AgentDataFromIM.EncryptFile
 	DATASTACKAgent.RetainFileOnSuccess = AgentDataFromIM.RetainFileOnSuccess
 	DATASTACKAgent.RetainFileOnError = AgentDataFromIM.RetainFileOnError

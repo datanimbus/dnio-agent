@@ -138,6 +138,7 @@ type AgentDetails struct {
 	Paused                 bool
 	UploadType             string
 	EncryptionKey          string
+	PollerFrequency        string
 }
 
 // AgentService - task of agent
@@ -228,6 +229,8 @@ func (DATASTACKAgent *AgentDetails) StartAgent() error {
 	DATASTACKAgent.Logger.Debug("Conf File Path : %s", DATASTACKAgent.ConfFilePath)
 	DATASTACKAgent.Logger.Info("Encryption Type : Buffered Encryption")
 	DATASTACKAgent.Logger.Info("Interactive mode : %v", DATASTACKAgent.InteractiveMode)
+	DATASTACKAgent.Logger.Trace("Heartbeat Frequency : %s", DATASTACKAgent.HeartBeatFrequency)
+	DATASTACKAgent.Logger.Trace("Poller Frequency : %s", DATASTACKAgent.PollerFrequency)
 
 	err := DATASTACKAgent.MonitoringLedger.AddOrUpdateEntry(&models.MonitoringLedgerEntry{
 		AgentID:            DATASTACKAgent.AgentID,
@@ -333,11 +336,10 @@ func (DATASTACKAgent *AgentDetails) initCentralHeartBeat(wg *sync.WaitGroup) {
 			headers := make(map[string]string)
 			headers["Authorization"] = "JWT " + DATASTACKAgent.Token
 			headers["HeartBeatFrequency"] = DATASTACKAgent.HeartBeatFrequency
-			DATASTACKAgent.Logger.Trace("Heartbeat Headers %s", headers["HeartBeatFrequency"])
 			URL := DATASTACKAgent.BaseURL + "/b2b/bm/{app}/agent/utils/{agentId}/heartbeat"
 			URL = strings.Replace(URL, "{app}", DATASTACKAgent.AppName, -1)
 			URL = strings.Replace(URL, "{agentId}", DATASTACKAgent.AgentID, -1)
-			DATASTACKAgent.Logger.Info("Making Request at -: %s", URL)
+			DATASTACKAgent.Logger.Info("Making Heartbeat Request at -: %s", URL)
 			if !DATASTACKAgent.Paused {
 				err = DATASTACKAgent.Utils.MakeJSONRequest(client, URL, request, headers, &data)
 			} else {
@@ -352,7 +354,7 @@ func (DATASTACKAgent *AgentDetails) initCentralHeartBeat(wg *sync.WaitGroup) {
 				continue
 			}
 
-			DATASTACKAgent.Logger.Info("Heartbeat Response from Integration Manager - ", data)
+			DATASTACKAgent.Logger.Info("Heartbeat Response from Integration Manager %s - ", data.Status)
 			if !DATASTACKAgent.Paused {
 				switch data.Status {
 				case AlreadyRunningAgent:
@@ -372,7 +374,7 @@ func (DATASTACKAgent *AgentDetails) initCentralHeartBeat(wg *sync.WaitGroup) {
 				DATASTACKAgent.MaxConcurrentUploads = data.AgentMaxConcurrentUploads
 			}
 
-			DATASTACKAgent.Logger.Trace("%v entries fetched", len(data.TransferLedgerEntries))
+			DATASTACKAgent.Logger.Info("Heartbeat %v entries fetched", len(data.TransferLedgerEntries))
 			for _, entry := range data.TransferLedgerEntries {
 				if entry.Action != ledgers.CREATEAPIFLOWREQUEST && entry.Action != ledgers.STOPAPIFLOWREQUEST {
 					DATASTACKAgent.Logger.Trace("Heartbeat Entry - ", entry)
@@ -564,7 +566,7 @@ func (DATASTACKAgent *AgentDetails) handleFlowCreateStartOrUpdateRequest(entry m
 				properties.InputFolder = inputDirectory
 				if DATASTACKAgent.isInputDirectoryAvailable(inputDirectory, entry.FlowName) {
 					DATASTACKAgent.Logger.Info("Falling back to long polling.")
-					DATASTACKAgent.Logger.Info("Long polling interval set at 60 seconds")
+					DATASTACKAgent.Logger.Info("Long polling interval set at %s seconds", DATASTACKAgent.PollerFrequency)
 					if DATASTACKAgent.WatchersRunning.Value() < 1024 {
 						FlowDirectories[properties.FlowID] = append(FlowDirectories[properties.FlowID], inputDirectory)
 						DATASTACKAgent.WatchersRunning.Add(1)
@@ -847,10 +849,12 @@ func (DATASTACKAgent *AgentDetails) isInputDirectoryAvailable(inputDir string, f
 
 func (DATASTACKAgent *AgentDetails) pollInputDirectoryEveryXSeconds(entry models.TransferLedgerEntry, properties models.FlowWatcherProperties) {
 	c := cron.New()
-	c.AddFunc("@every 60s", func() {
-		DATASTACKAgent.Logger.Info("Listener started on %s ", properties.InputFolder)
+	pollerDuration := "@every " + DATASTACKAgent.PollerFrequency + "s"
+	// DATASTACKAgent.Logger.Trace("Poller duration is set to - ", pollerDuration)
+	c.AddFunc(pollerDuration, func() {
+		// DATASTACKAgent.Logger.Info("Listener started on %s ", properties.InputFolder)
 		DATASTACKAgent.initExistingUploadsFromInputFolder(properties.InputFolder, entry, properties.BlockName, properties.StructureID, properties.UniqueRemoteTxn, properties.UniqueRemoteTxnOptions, pollingUploads, properties.ErrorBlocks)
-		DATASTACKAgent.Logger.Info("Listener stopped on %s ", properties.InputFolder)
+		// DATASTACKAgent.Logger.Info("Listener stopped on %s ", properties.InputFolder)
 	})
 	c.Start()
 	end := <-DATASTACKAgent.FlowsChannel[properties.AppName][properties.FlowID]
@@ -1082,22 +1086,33 @@ func (DATASTACKAgent *AgentDetails) handleQueuedJobs(wg *sync.WaitGroup) {
 					switch entry.Action {
 					case ledgers.FLOWCREATEREQUEST:
 						go DATASTACKAgent.handleFlowCreateStartOrUpdateRequest(entry)
-						return
+						break
 					case ledgers.FLOWSTARTREQUEST:
 						go DATASTACKAgent.handleFlowCreateStartOrUpdateRequest(entry)
-						return
+						break
 					case ledgers.FLOWUPDATEREQUEST:
 						go DATASTACKAgent.handleFlowCreateStartOrUpdateRequest(entry)
-						return
+						break
 					case ledgers.FLOWSTOPREQUEST:
 						go DATASTACKAgent.handleFlowStopRequest(entry)
-						return
+						break
 					case ledgers.FILEPROCESSEDSUCCESS:
 						go DATASTACKAgent.handleFileProcessedSuccessRequest(entry)
-						return
+						break
 					case ledgers.FILEPROCESSEDERROR:
 						go DATASTACKAgent.handleFileProcessedFailureRequest(entry)
-						return
+						break
+					case ledgers.STOPAGENT, ledgers.DISABLEAGENT:
+						monitoringLedgerEntries, _ := DATASTACKAgent.MonitoringLedger.GetAllEntries()
+						ledgerEntry := monitoringLedgerEntries[0]
+						ledgerEntry.Status = ledgers.STOPPED
+						DATASTACKAgent.pingSentinel(ledgerEntry)
+						DATASTACKAgent.Logger.Info("The agent has been stopped/disabled at the server")
+						os.Exit(0)
+						break
+					case ledgers.PASSWORDCHANGED:
+						go DATASTACKAgent.HandleChangePasswordRequest(entry)
+						break
 					}
 				}
 			}
@@ -1170,7 +1185,7 @@ func (DATASTACKAgent *AgentDetails) handleUploadFileRequest(entry models.Transfe
 
 		fileSize := fileInfo.Size()
 		fileSizeString := strconv.FormatInt(fileSize, 10)
-		checksum, err := DATASTACKAgent.Utils.CalculateMD5ChecksumForFile(fileUploadMetaData.OriginalFilePath)
+		checksum, err := DATASTACKAgent.Utils.CalculateSHA256ChecksumForFile(fileUploadMetaData.OriginalFilePath)
 		if err != nil {
 			DATASTACKAgent.Logger.Error("Calculate checksum error %v", err)
 			DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.UPLOADERROR, metadatagenerator.GenerateFileUploadErrorMetaData(messagegenerator.ExtractErrorMessageFromErrorObject(err), fileUploadMetaData.RemoteTxnID, fileUploadMetaData.DataStackTxnID), time.Now(), "OUT", false)
@@ -1791,7 +1806,7 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 
 		if currentChunk > TotalChunks {
 			//File download complete sending downloaded interaction
-			interactionChecksum, _ := DATASTACKAgent.Utils.CalculateMD5ChecksumForFile(files[0].Name())
+			interactionChecksum, _ := DATASTACKAgent.Utils.CalculateSHA256ChecksumForFile(files[0].Name())
 			fileStat, _ := os.Stat(files[0].Name())
 			fileSize := fileStat.Size()
 			size := strconv.FormatInt(fileSize, 10)
@@ -1800,9 +1815,9 @@ func (DATASTACKAgent *AgentDetails) handleDownloadFileRequest(entry models.Trans
 				DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.REDOWNLOADED, string(interactionMetadataString), time.Now(), "OUT", false)
 			} else {
 				DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.DOWNLOADED, string(interactionMetadataString), time.Now(), "OUT", false)
-				if fileDownloadMetaData.SuccessBlock == "true" {
-					// go DATASTACKAgent.handleSuccessFlowFileUploadRequest(entry)
-				}
+				// if fileDownloadMetaData.SuccessBlock == "true" {
+				// 	go DATASTACKAgent.handleSuccessFlowFileUploadRequest(entry)
+				// }
 			}
 			DATASTACKAgent.Logger.Info("%s file downloaded successfully", fileDownloadMetaData.FileName)
 			DATASTACKAgent.addEntryToTransferLedger(entry.FlowName, entry.FlowID, ledgers.DOWNLOADED+fileDownloadMetaData.FileID, "DOWNLOADED"+fileDownloadMetaData.FileID, time.Now(), "OUT", true)
@@ -1951,4 +1966,27 @@ func weHaveToStartListenerOrNot(Direction string) bool {
 		listener = true
 	}
 	return listener
+}
+
+func (DATASTACKAgent *AgentDetails) pingSentinel(monitoringLedgerEntry models.MonitoringLedgerEntry) {
+	if DATASTACKAgent.InteractiveMode {
+		return
+	}
+	if DATASTACKAgent.SentinelPortNumber == "" {
+		DATASTACKAgent.SentinelPortNumber = "54321"
+	}
+	if DATASTACKAgent.SentinelPortNumber != "" {
+		jsonString, err := json.Marshal(monitoringLedgerEntry)
+		if err != nil {
+			DATASTACKAgent.Logger.Error(fmt.Sprintf("%s", err))
+			return
+		}
+		DATASTACKAgent.Logger.Trace("Monitoring Entry - %s", jsonString)
+	}
+}
+
+// HandleChangePasswordRequest - changing the password of agent
+func (DATASTACKAgent *AgentDetails) HandleChangePasswordRequest(entry models.TransferLedgerEntry) {
+	DATASTACKAgent.Logger.Info("Agent password has been reset successfully, please restart the agent.")
+	os.Exit(0)
 }
