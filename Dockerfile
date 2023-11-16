@@ -1,6 +1,3 @@
-ARG SIGNING_KEY_USER=dev
-ARG SIGNING_KEY_PASSWORD=dev
-
 ###############################################################################################
 # Go Agent Build
 ###############################################################################################
@@ -30,6 +27,9 @@ RUN env GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o exec/datastack-ag
 ###############################################################################################
 
 FROM ubuntu:20.04 AS oss
+
+ARG SIGNING_KEY_USER=dev
+ARG SIGNING_KEY_PASSWORD=dev
 
 RUN apt-get update
 RUN apt-get install -y osslsigncode

@@ -73,7 +73,7 @@ if [ -f $WORKSPACE/../CLEAN_BUILD_AGENT ]; then
     echo "datanimbus.io.b2b.agents :: Doing a clean build"
     echo "****************************************************"
 
-    docker build --no-cache -t datanimbus.io.b2b.agents.$TAG --build-arg SIGNING_KEY_USER=$SIGNING_KEY_USER --build-arg SIGNING_KEY_PASSWORD=$SIGNING_KEY_PASSWORD .
+    docker build --no-cache --build-arg SIGNING_KEY_USER=$SIGNING_KEY_USER --build-arg SIGNING_KEY_PASSWORD=$SIGNING_KEY_PASSWORD -t datanimbus.io.b2b.agents.$TAG .
     rm $WORKSPACE/../CLEAN_BUILD_AGENT
 
     # echo "****************************************************"
@@ -99,7 +99,7 @@ else
     echo "****************************************************"
     echo "datanimbus.io.b2b.agents :: Doing a normal build"   
     echo "****************************************************"
-    docker build -t datanimbus.io.b2b.agents.$TAG --build-arg SIGNING_KEY_USER=$SIGNING_KEY_USER --build-arg SIGNING_KEY_PASSWORD=$SIGNING_KEY_PASSWORD .
+    docker build --build-arg SIGNING_KEY_USER=$SIGNING_KEY_USER --build-arg SIGNING_KEY_PASSWORD=$SIGNING_KEY_PASSWORD -t datanimbus.io.b2b.agents.$TAG .
     # if [ $CICD ]; then
     #     if [ $DOCKER_REG ]; then
     #         kubectl set image deployment/agent agent=$DOCKER_REG/datanimbus.io.b2b.agents.$TAG -n $DATA_STACK_NS --record=true
