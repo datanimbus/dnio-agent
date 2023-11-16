@@ -3,6 +3,10 @@
 ###############################################################################################
 
 FROM golang:1.18-alpine AS agents
+
+ARG SIGNING_KEY_USER=dev
+ARG SIGNING_KEY_PASSWORD=dev
+
 ENV GOPROXY=direct
 
 RUN apk add git
@@ -28,17 +32,14 @@ RUN env GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o exec/datastack-ag
 
 FROM ubuntu:20.04 AS oss
 
-ARG SIGNING_KEY_USER=dev
-ARG SIGNING_KEY_PASSWORD=dev
-
 RUN apt-get update
 RUN apt-get install -y osslsigncode
 RUN apt-get install -y wget
 
 WORKDIR /app
 
-RUN wget --user ${SIGNING_KEY_USER} --password ${SIGNING_KEY_PASSWORD} https://dev.datanimbus.io/agentbuild/out.key
-RUN wget --user ${SIGNING_KEY_USER} --password ${SIGNING_KEY_PASSWORD} https://dev.datanimbus.io/agentbuild/cd786349a667ff05-SHA2.pem
+RUN wget --user $SIGNING_KEY_USER --password $SIGNING_KEY_PASSWORD https://dev.datanimbus.io/agentbuild/out.key
+RUN wget --user $SIGNING_KEY_USER --password $SIGNING_KEY_PASSWORD https://dev.datanimbus.io/agentbuild/cd786349a667ff05-SHA2.pem
 
 COPY --from=agents /app/exec ./exec
 COPY --from=agents /app/scriptFiles ./scriptFiles
