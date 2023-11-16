@@ -1,3 +1,5 @@
+ARG SIGNING_KEY_USER=dev
+ARG SIGNING_KEY_PASSWORD=dev
 
 ###############################################################################################
 # Go Agent Build
@@ -35,8 +37,8 @@ RUN apt-get install -y wget
 
 WORKDIR /app
 
-RUN wget --user __signing_key_user__ --password __signing_key_password__ https://cicd.ds.datanimbus.com/agentbuild/out.key
-RUN wget --user __signing_key_user__ --password __signing_key_password__ https://cicd.ds.datanimbus.com/agentbuild/cd786349a667ff05-SHA2.pem
+RUN wget --user ${SIGNING_KEY_USER} --password ${SIGNING_KEY_PASSWORD} https://dev.datanimbus.io/agentbuild/out.key
+RUN wget --user ${SIGNING_KEY_USER} --password ${SIGNING_KEY_PASSWORD} https://dev.datanimbus.io/agentbuild/cd786349a667ff05-SHA2.pem
 
 COPY --from=agents /app/exec ./exec
 COPY --from=agents /app/scriptFiles ./scriptFiles
