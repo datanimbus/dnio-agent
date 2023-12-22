@@ -8,6 +8,7 @@ import (
 	"crypto/cipher"
 	"crypto/md5"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/tls"
 	"ds-agent/messagegenerator"
 	"ds-agent/models"
@@ -47,7 +48,8 @@ type UtilityService interface {
 	CheckFileRegexAndExtension(fileName string, fileExtensions []models.FileExtensionStruct, fileNameRegexs []string) bool
 	CreateFlowErrorFile(filePath string, errorMsg string) error
 	GetFileDetails(filePath string, AppFolder string, FlowName string, fileExtensions []models.FileExtensionStruct, fileNameRegexs []string) (flowName string, originalFileName string, originalAbsoluteFilePath string, newFileName string, newLocation string, md5CheckSum string, err error)
-	CalculateMD5ChecksumForFile(filePath string) (string, error)
+	// CalculateMD5ChecksumForFile(filePath string) (string, error)
+	CalculateSHA256ChecksumForFile(filePath string) (string, error)
 	Compress(data []byte) []byte
 	Decompress(data []byte) []byte
 	EncryptData(data []byte, passphrase string) ([]byte, error)
@@ -168,7 +170,7 @@ func (Utils *UtilsService) MakeJSONRequest(client *http.Client, url string, payl
 		data = nil
 		return errr
 	}
-	if res.StatusCode != 200 {
+	if res.StatusCode != 200 && res.StatusCode != 403 {
 		if res.Body != nil {
 			responseData, _ := ioutil.ReadAll(res.Body)
 			return errors.New(string(responseData))
@@ -418,20 +420,37 @@ func ValidateFileSize(filepath string, maxFileSize int) (int64, bool, error) {
 }
 
 // CalculateMD5ChecksumForFile - calculate MD5 checksum for file content
-func (Utils *UtilsService) CalculateMD5ChecksumForFile(filePath string) (string, error) {
-	var returnMD5String string
+// func (Utils *UtilsService) CalculateMD5ChecksumForFile(filePath string) (string, error) {
+// 	var returnMD5String string
+// 	file, err := os.Open(filePath)
+// 	if err != nil {
+// 		return returnMD5String, err
+// 	}
+// 	defer file.Close()
+// 	hash := md5.New()
+// 	if _, err := io.Copy(hash, file); err != nil {
+// 		return "", err
+// 	}
+// 	hashInBytes := hash.Sum(nil)[:16]
+// 	returnMD5String = hex.EncodeToString(hashInBytes)
+// 	return returnMD5String, nil
+// }
+
+// CalculateSHA256ChecksumForFile - calculate SHA256 checksum for file content
+func (Utils *UtilsService) CalculateSHA256ChecksumForFile(filePath string) (string, error) {
+	var returnSHA256String string
 	file, err := os.Open(filePath)
 	if err != nil {
-		return returnMD5String, err
+		return returnSHA256String, err
 	}
 	defer file.Close()
-	hash := md5.New()
+	hash := sha256.New()
 	if _, err := io.Copy(hash, file); err != nil {
 		return "", err
 	}
 	hashInBytes := hash.Sum(nil)[:16]
-	returnMD5String = hex.EncodeToString(hashInBytes)
-	return returnMD5String, nil
+	returnSHA256String = hex.EncodeToString(hashInBytes)
+	return returnSHA256String, nil
 }
 
 // Compress - compressing file chunk

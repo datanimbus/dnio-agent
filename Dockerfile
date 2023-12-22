@@ -1,23 +1,18 @@
-
 ###############################################################################################
 # Go Agent Build
 ###############################################################################################
 
 FROM golang:1.18-alpine AS agents
+
+ARG SIGNING_KEY_USER=dev
+ARG SIGNING_KEY_PASSWORD=dev
+
 ENV GOPROXY=direct
 
-# RUN apk add git
+RUN apk add git
 # RUN apk add make
 
 WORKDIR /app
-
-RUN go get -u github.com/gorilla/mux
-RUN go get -u github.com/asdine/storm
-RUN go get -u github.com/satori/go.uuid
-RUN go get -u github.com/howeyc/gopass
-RUN go get -u github.com/appveen/go-log/log
-RUN go get -u github.com/kardianos/service
-RUN go get -u github.com/robfig/cron
 
 COPY . .
 
@@ -35,7 +30,10 @@ RUN env GOOS=windows GOARCH=amd64 go build -ldflags="-s -w" -o exec/datastack-ag
 #Agent Signing
 ###############################################################################################
 
-FROM ubuntu:20.04 AS oss
+FROM ubuntu:20.04
+
+ARG SIGNING_KEY_USER=dev
+ARG SIGNING_KEY_PASSWORD=dev
 
 RUN apt-get update
 RUN apt-get install -y osslsigncode
@@ -43,8 +41,8 @@ RUN apt-get install -y wget
 
 WORKDIR /app
 
-RUN wget --user __signing_key_user__ --password __signing_key_password__ https://cicd.ds.appveen.com/agentbuild/out.key
-RUN wget --user __signing_key_user__ --password __signing_key_password__ https://cicd.ds.appveen.com/agentbuild/cd786349a667ff05-SHA2.pem
+RUN wget --user ${SIGNING_KEY_USER} --password ${SIGNING_KEY_PASSWORD} https://dev.datanimbus.io/agentbuild/out.key
+RUN wget --user ${SIGNING_KEY_USER} --password ${SIGNING_KEY_PASSWORD} https://dev.datanimbus.io/agentbuild/cd786349a667ff05-SHA2.pem
 
 COPY --from=agents /app/exec ./exec
 COPY --from=agents /app/scriptFiles ./scriptFiles

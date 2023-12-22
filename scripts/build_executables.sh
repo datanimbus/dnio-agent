@@ -2,16 +2,16 @@
 
 cd $WORKSPACE
 echo "****************************************************"
-echo "data.stack.b2b.agents :: Clearing exec folder"
+echo "datanimbus.io.b2b.agents :: Clearing exec folder"
 echo "****************************************************"
 rm exec/* || true
 # echo "****************************************************"
-# echo "data.stack.b2b.agents :: Installing osslsigncode"
+# echo "datanimbus.io.b2b.agents :: Installing osslsigncode"
 # echo "****************************************************"
 # sudo apt-get update
 # sudo apt-get install osslsigncode
 echo "****************************************************"
-echo "data.stack.b2b.agents :: Building executables"
+echo "datanimbus.io.b2b.agents :: Building executables"
 echo "****************************************************"
 # echo "env GOOS=android GOARCH=arm go build -ldflags="-s -w" -o ds-agent-android-arm ./v1"
 # env GOOS=android GOARCH=arm go build -ldflags="-s -w" -o exec/ds-agent-android-arm ./v1 || true

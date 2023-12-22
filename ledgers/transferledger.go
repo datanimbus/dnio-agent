@@ -143,6 +143,21 @@ const (
 
 	//POSTPROCESSFAILUREERROR - error occurred in handling of file after processing failure message received
 	POSTPROCESSFAILUREERROR = "POST_PROCESS_FAILURE_ERROR"
+
+	//DELETEFLOWREQUEST - action to delete existing flow
+	DELETEFLOWREQUEST = "DELETE_FLOW_REQUEST"
+
+	//STOPAGENT - stop agent
+	STOPAGENT = "AGENT-STOPPED"
+
+	//DISABLEAGENT - disable agent
+	DISABLEAGENT = "AGENT-DISABLED"
+
+	//PASSWORDCHANGED - password changed
+	PASSWORDCHANGED = "PASSWORD-CHANGED"
+
+	//DELETEAGENT - delete agent exe and related conf files
+	DELETEAGENT = "DELETE_AGENT"
 )
 
 // TransferLedger - Base DB struct
